@@ -1071,9 +1071,10 @@ function aiForm() {
     '<label>Chkoun l clients dyalo?<input id="ai-ci" placeholder="ex: bnat 18-35, mamat, li bghaw ykhdmo…"></label>' +
     '<div class="form"><label>Mdina<input id="ai-v" placeholder="Témara"></label><label>Offre / promo<input id="ai-p" placeholder="ex: -20% had chhar"></label></div>' +
     '<label>Nmra / adresse (ikhtiyari)<input id="ai-co" placeholder="ex: 06…, 7da …"></label>' +
-    '<label>Nou3 dyal script</label>' + chipSel('ai-ty', [['MIX', '🔀 Mkhallat'], ['PAS', 'Mochkil → 7al'], ['HSO', 'Hook · Story · Offre'], ['OFFRE', 'Offre direct'], ['RAISONS', '3 asbab'],
+    '<label>Nou3 dyal script</label>' + chipSel('ai-ty', [['MIX', '🔀 Mkhallat'], ['UGC', '🤳 UGC produit'], ['PAS', 'Mochkil → 7al'], ['HSO', 'Hook · Story · Offre'], ['OFFRE', 'Offre direct'], ['RAISONS', '3 asbab'],
       ['AVANT_APRES', '9bel / mn b3d'], ['POV', 'POV'], ['MYTHE', 'Mythe / ghalat'], ['QUESTIONS', 'So2alat (FAQ)'], ['URGENCE', 'Urgence'], ['COMPARAISON', 'Comparaison'],
       ['TEMOIN', 'Klam client (temoignage)'], ['HUMOUR', 'Dahk / humour'], ['EMOTION', 'Emotion'], ['DEFI', 'Défi'], ['LISTE', 'Liste (5 7wayj)']], 'MIX') +
+    '<label>Hooks (mo9addimat)</label>' + chipSel('ai-hk', [['1', '1 hook'], ['3', '3 hooks (3 mo9addimat)']], '1') +
     '<label>Lougha</label>' + chipSel('ai-lg', [['darija', 'Darija'], ['arabe', 'العربية'], ['fr', 'Français'], ['en', 'English']], 'darija') +
     '<label>Toul</label>' + chipSel('ai-du', [['15', '15 sec'], ['30', '30 sec'], ['45', '45 sec']], '30') +
     '<label>Ch7al mn script</label>' + chipSel('ai-n', [['1', '1'], ['3', '3'], ['6', '6']], '3');
@@ -1085,7 +1086,7 @@ function aiForm() {
   f += '<button class="pri big" id="ai-go">✨ Khrej</button>';
   $('ai-f').innerHTML = f; $('ai-r').innerHTML = '';
   var st = { h: 1, fm: 'carre', ty: 'MIX', du: 30, n: 3, lg: 'darija' };
-  bindSel('ai-lg', false, function (v) { st.lg = v; });
+  bindSel('ai-lg', false, function (v) { st.lg = v; }); bindSel('ai-hk', false, function (v) { st.h = +v; });
   bindSel('ai-fm', false, function (v) { st.fm = v; }); bindSel('ai-ty', false, function (v) { st.ty = v; });
   bindSel('ai-du', false, function (v) { st.du = +v; }); bindSel('ai-n', false, function (v) { st.n = +v; });
   var val = function (id) { return $(id) ? $(id).value : ''; };
