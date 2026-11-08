@@ -1058,22 +1058,33 @@ function vAI() {
 function aiForm() {
   var k = S.aitab, f = '<label>Client (ikhtiyari)<input id="ai-cl" list="ai-cls" placeholder="Smiya…"></label><datalist id="ai-cls">' +
     (S.clients || []).slice(0, 300).map(function (c) { return '<option value="' + esc(c.nom) + '">'; }).join('') + '</datalist>';
-  if (k !== 'vocal') f += '<label>Chno kaybi3 / nachat dyalo<textarea id="ai-d" style="min-height:70px" placeholder="ex: mahal dyal l7wayj dyal drari f Témara, promo -20%…"></textarea></label>' +
+  if (k === 'script') f += '<label>Chno kaybi3 / nachat dyalo<input id="ai-d" placeholder="ex: centre kay3allem la cuisine marocaine"></label>' +
+    '<label>Les avantages (chno kay3ti, 3-5 7wayj)<textarea id="ai-av" style="min-height:70px" placeholder="ex: chef m3ak, kat9tab b yddik, chahada, wa9t mrann…"></textarea></label>' +
+    '<label>Chno l mochkil li kaydawi l client dyalo?<input id="ai-pb" placeholder="ex: ma kay3rfch ytayeb, bgha ykhdem f restaurant…"></label>' +
+    '<label>Chkoun l clients dyalo?<input id="ai-ci" placeholder="ex: bnat 18-35, mamat, li bghaw ykhdmo…"></label>' +
+    '<div class="form"><label>Mdina<input id="ai-v" placeholder="Témara"></label><label>Offre / promo<input id="ai-p" placeholder="ex: -20% had chhar"></label></div>' +
+    '<label>Nmra / adresse (ikhtiyari)<input id="ai-co" placeholder="ex: 06…, 7da …"></label>' +
+    '<label>Nou3 dyal script</label>' + chipSel('ai-ty', [['MIX', '🔀 Mkhallat'], ['PAS', 'Mochkil → 7al'], ['HSO', 'Hook · Story · Offre'], ['OFFRE', 'Offre direct'], ['RAISONS', '3 asbab'], ['AVANT_APRES', '9bel / mn b3d'], ['POV', 'POV']], 'MIX') +
+    '<label>Toul</label>' + chipSel('ai-du', [['15', '15 sec'], ['30', '30 sec'], ['45', '45 sec']], '30') +
+    '<label>Ch7al mn script</label>' + chipSel('ai-n', [['1', '1'], ['3', '3'], ['6', '6']], '3');
+  else if (k !== 'vocal') f += '<label>Chno kaybi3 / nachat dyalo<textarea id="ai-d" style="min-height:70px" placeholder="ex: mahal dyal l7wayj dyal drari f Témara, promo -20%…"></textarea></label>' +
     '<div class="form"><label>Mdina<input id="ai-v" placeholder="Témara"></label><label>Promo / offre<input id="ai-p" placeholder="ex: -20%, livraison fabor"></label></div>';
-  if (k === 'script') f += '<label>Ch7al mn hook</label>' + chipSel('ai-h', [['1', '1 hook'], ['3', '3 hooks']], '1');
   if (k === 'affiche') f += '<label>Format</label>' + chipSel('ai-fm', [['carre', 'Carré (feed)'], ['story', 'Story']], 'carre') +
     '<div class="form"><label>Titre f l affiche<input id="ai-ti" placeholder="ex: -20% had simana"></label><label>Nmra / WhatsApp<input id="ai-te" inputmode="tel"></label></div>';
   if (k === 'vocal') f += '<label>Vocal dyal client (mn WhatsApp: partager → TIMEDIA, wla khtarih)<input type="file" accept="audio/*" id="ai-a"></label><label>Ma3lomat zayda (ikhtiyari)<input id="ai-d"></label>';
   f += '<button class="pri big" id="ai-go">✨ Khrej</button>';
   $('ai-f').innerHTML = f; $('ai-r').innerHTML = '';
-  var st = { h: 1, fm: 'carre' };
-  bindSel('ai-h', false, function (v) { st.h = +v; }); bindSel('ai-fm', false, function (v) { st.fm = v; });
+  var st = { h: 1, fm: 'carre', ty: 'MIX', du: 30, n: 3 };
+  bindSel('ai-fm', false, function (v) { st.fm = v; }); bindSel('ai-ty', false, function (v) { st.ty = v; });
+  bindSel('ai-du', false, function (v) { st.du = +v; }); bindSel('ai-n', false, function (v) { st.n = +v; });
+  var val = function (id) { return $(id) ? $(id).value : ''; };
   $('ai-go').onclick = function () {
     var b = this, nom = $('ai-cl').value.trim(), c = (S.clients || []).filter(function (x) { return x.nom === nom; })[0];
     var p = { client: nom, description: $('ai-d') ? $('ai-d').value : '', ville: $('ai-v') ? $('ai-v').value : '', promo: $('ai-p') ? $('ai-p').value : '',
-      dernier: c ? c.dernier + ' (' + c.n + ' commandes, moyenne ' + c.moy + ' DH)' : '', hooks: st.h, format: st.fm };
+      dernier: c ? c.dernier + ' (' + c.n + ' commandes, moyenne ' + c.moy + ' DH)' : '', hooks: st.h, format: st.fm,
+      avantages: val('ai-av'), probleme: val('ai-pb'), cible: val('ai-ci'), contact: val('ai-co'), type: st.ty, duree: st.du, n: st.n };
     var go2 = function () {
-      b.disabled = true; b.textContent = 'Kaykhdem… (10-30 sec)';
+      b.disabled = true; b.textContent = k === 'script' ? 'Kaykteb… (' + (st.n > 3 ? '40-60' : '15-30') + ' sec)' : 'Kaykhdem… (10-30 sec)';
       call('aiGenerate', S.token, k, p).then(function (r) { b.disabled = false; b.textContent = '✨ 3awd khrej'; aiResult(k, r, p, c); })
         .catch(function (e) { b.disabled = false; b.textContent = '✨ Khrej'; $('ai-r').innerHTML = errBox(e); });
     };
@@ -1081,6 +1092,7 @@ function aiForm() {
       if (file.size > 15e6) { $('ai-r').innerHTML = errBox('Vocal kbir bzaf.'); return; }
       var fr = new FileReader(); fr.onload = function () { p.audio = fr.result; go2(); }; fr.readAsDataURL(file); return; }
     if (!p.description.trim()) { $('ai-r').innerHTML = errBox('Ktbi chno kaybi3 l client.'); return; }
+    if (k === 'script' && !String(p.avantages).trim()) { $('ai-r').innerHTML = errBox('Ktbi les avantages: homa l9alb dyal script.'); return; }
     go2();
   };
 }
