@@ -25,4 +25,4 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "v${{ github.run_number }}" out/TIMEDIA.apk --title "TIMEDIA ${{ github.run_number }}" --notes "Application TIMEDIA"
+        run: gh release create "v${{ github.run_number }}" out/TIMEDIA.apk out/app.html --title "TIMEDIA ${{ github.run_number }}" --notes "Application TIMEDIA"
