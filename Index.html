@@ -129,6 +129,8 @@ button.wa{background:var(--wa);border-color:var(--wa);color:#fff}
 .tlist{display:grid;gap:8px}.tcard{display:grid;gap:2px;text-align:left;padding:10px 12px;border-radius:12px}
 .tcard span{font-weight:400;font-size:12.5px;color:var(--muted)}.tcard.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
 .hist summary{color:var(--ink)!important;font-weight:600}.hist .card{margin-top:8px}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.sugg:empty{display:none}.sugg button{padding:6px 11px;border-radius:999px;font-size:13px;font-weight:600}
+.ofp{font:800 18px "Archivo",Arial,sans-serif;color:var(--brand)}
 </style>
 </head>
 <body>
@@ -1113,11 +1115,17 @@ function aiResult(k, r, p, c) {
     return;
   }
   var tel = c && c.tel;
-  var parts = k === 'script' ? String(r.text).split(/^\s*={3,}\s*$/m).map(function (x) { return x.trim(); }).filter(String) : [String(r.text)];
-  $('ai-r').innerHTML = parts.map(function (t, i) {
-    return '<div class="panel" data-i="' + i + '">' + (parts.length > 1 ? '<div class="grp">Script ' + (i + 1) + '</div>' : '') +
+  var parts = (k === 'script' || k === 'offres') ? String(r.text).split(/^\s*={3,}\s*$/m).map(function (x) { return x.trim(); }).filter(String) : [String(r.text)];
+  var head = function (t, i) { return parts.length > 1 ? '<div class="grp">Script ' + (i + 1) + '</div>' : ''; };
+  if (k === 'offres') {
+    var tops = [];
+    parts = parts.map(function (t) { var L = t.split('\n'); tops.push(L.shift().replace(/^[#*\s]+|\*+/g, '').trim()); return L.join('\n').replace(/^\s*(message|رسالة)\s*:\s*/i, '').trim(); });
+    head = function (t, i) { return '<div class="ofp">' + (i + 1) + '. ' + esc(tops[i]) + '</div>'; };
+  }
+  $('ai-r').innerHTML = (k === 'offres' && p.client ? '<h2>🎁 Offres l ' + esc(p.client) + '</h2>' : '') + parts.map(function (t, i) {
+    return '<div class="panel" data-i="' + i + '">' + head(t, i) +
       '<div class="resume" dir="auto" contenteditable="true" data-t>' + esc(t) + '</div>' +
-      '<div class="act"><a href="#" data-cp>📋 Copier</a>' + (tel ? '<a class="wa" href="#" data-wa>📲 Sifti l ' + esc(c.nom) + '</a>' : '') + '</div>' +
+      '<div class="act"><a href="#" data-cp>📋 Copier</a>' + (tel ? '<a class="wa" href="#" data-wa>📲 Sifti l ' + esc(c.nom) + '</a>' : k === 'offres' ? '<a class="wa" href="#" data-wa>📲 WhatsApp</a>' : '') + '</div>' +
       (k === 'script' ? '<details class="msg"><summary>✏️ Ma 3jbekch? Goul l AI chno ybeddel</summary>' +
         '<textarea data-cm placeholder="ex: zid l avantage dyal chahada, dir hook b so2al, 9eser chwiya, zid l offre -20%…" style="min-height:70px;margin-top:8px"></textarea>' +
         '<button class="pri" data-rv style="margin-top:8px;width:100%">✨ Beddel had script</button></details>' : '') + '</div>';
@@ -1125,7 +1133,7 @@ function aiResult(k, r, p, c) {
   $('ai-r').querySelectorAll('.panel').forEach(function (box) {
     var txt = box.querySelector('[data-t]');
     box.querySelector('[data-cp]').onclick = function (e) { e.preventDefault(); var a = this; copyText(txt.innerText).then(function () { a.textContent = '✓ Tcopiya'; setTimeout(function () { a.textContent = '📋 Copier'; }, 1500); }); };
-    var w = box.querySelector('[data-wa]'); if (w) w.onclick = function (e) { e.preventDefault(); window.open(waUrl(tel, txt.innerText), '_blank'); };
+    var w = box.querySelector('[data-wa]'); if (w) w.onclick = function (e) { e.preventDefault(); window.open(tel ? waUrl(tel, txt.innerText) : 'https://wa.me/?text=' + encodeURIComponent(txt.innerText), '_blank'); };
     var rv = box.querySelector('[data-rv]');
     if (rv) rv.onclick = function () {
       var cm = box.querySelector('[data-cm]').value.trim();
@@ -1323,8 +1331,11 @@ function vAI() {
   show('<h1>' + (S.aitab === 'offres' ? 'Offres AI 🎁' : 'Kteb script ✍️') + '</h1>' + chipSel('ai-t', tabs, S.aitab) + '<div id="ai-main" style="display:grid;gap:14px"></div>');
   bindSel('ai-t', false, function (k) { S.aitab = k; vAI(); });
   if (S.aitab === 'offres') {
-    $('ai-main').innerHTML = '<div class="panel" id="ai-f"></div><div id="ai-r"></div>';
-    return aiForm();
+    $('ai-main').innerHTML = '<button class="pri big newbtn" id="of-new">🎁 Offres l chi client</button>' +
+      '<p class="note">Khtari client, ktbi thaman li bghiti tbi3i bih wla khalli l AI y9tare7, w ghadi ykhrej lik 9 offres mn sghir l kbir, kol wa7da b message jahz l WhatsApp.</p>' +
+      '<div id="ai-r" style="display:grid;gap:14px"></div>';
+    $('of-new').onclick = openOffreWizard;
+    return;
   }
   $('ai-main').innerHTML = '<button class="pri big newbtn" id="sc-new">✍️ Script jdid</button><div id="ai-r" style="display:grid;gap:14px"></div>' +
     '<div class="panel"><h2>📚 Historique</h2><div id="sc-h"><p class="note">Kaytcharga…</p></div></div>';
@@ -1340,8 +1351,7 @@ var SW_STEPS = ['client', 'av', 'pb', 'info', 'type', 'opts'];
 function swRender(err) {
   var W = S.sw, pos = Math.max(0, SW_STEPS.indexOf(W.k)), k = SW_STEPS[pos], n = SW_STEPS.length, h = '';
   var head = '<div class="wprog"><div style="width:' + Math.round((pos + 1) / n * 100) + '%"></div></div><div class="note">' + (pos + 1) + ' / ' + n + '</div>';
-  if (k === 'client') h = '<h2>Chkoun l client?</h2><label>Smiya dyal client (ikhtiyari)<input id="sw-cl" list="sw-cls" autocomplete="off" value="' + esc(W.client || '') + '" placeholder="ex: Centre Khama"></label>' +
-    '<datalist id="sw-cls">' + (S.clients || []).slice(0, 300).map(function (c) { return '<option value="' + esc(c.nom) + '">'; }).join('') + '</datalist>' +
+  if (k === 'client') h = '<h2>Chkoun l client?</h2><label>Smiya dyal client (ikhtiyari)<input id="sw-cl" autocomplete="off" value="' + esc(W.client || '') + '" placeholder="ex: Centre Khama"></label><div class="sugg" id="sw-sg"></div>' +
     '<label>Chno kaybi3 / nachat dyalo<input id="sw-d" value="' + esc(W.description || '') + '" placeholder="ex: centre kay3allem la cuisine marocaine"></label>';
   if (k === 'av') h = '<h2>Les avantages</h2><p class="note">Chno kay3ti l clients dyalo? 3 7ta 5 7wayj. Homa l9alb dyal script.</p>' +
     '<textarea id="sw-av" style="min-height:120px" placeholder="ex: chef m3ak, kattayeb b yddik, chahada, groupes sghar, wa9t mrann…">' + esc(W.avantages || '') + '</textarea>';
@@ -1363,6 +1373,7 @@ function swRender(err) {
     '<button type="button" class="pri" id="sw-next">' + (last ? '✨ Kteb script' : 'Li jay ›') + '</button></div>');
   if (k === 'type') document.querySelectorAll('.tcard').forEach(function (b) { b.onclick = function () { W.type = b.dataset.k; document.querySelectorAll('.tcard').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   if (k === 'opts') { bindSel('sw-hk', false, function (v) { W.h = +v; }); bindSel('sw-lg', false, function (v) { W.lg = v; }); bindSel('sw-du', false, function (v) { W.du = +v; }); bindSel('sw-n', false, function (v) { W.n = +v; }); }
+  if (k === 'client') nameSuggest('sw-cl', 'sw-sg');
   var f = document.querySelector('#mbody input, #mbody textarea'); if (f) f.focus();
   $('sw-next').onclick = function () { swNext(k); };
   if ($('sw-back')) $('sw-back').onclick = function () { swSave(k); W.k = SW_STEPS[pos - 1]; swRender(); };
@@ -1389,6 +1400,74 @@ function swNext(k) {
     aiResult('script', r, p, c); loadScriptHistory();
     var t = $('ai-r'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }).catch(function (e) { b.disabled = false; b.textContent = '✨ Kteb script'; swRender(e); });
+}
+/* ---------- smiya dyal client: ktba 7orra + 4 i9tira7at sghar ---------- */
+function nameSuggest(inId, boxId, onPick) {
+  var inp = $(inId), box = $(boxId); if (!inp || !box) return;
+  var draw = function () {
+    var q = inp.value.trim().toLowerCase();
+    if (q.length < 2) { box.innerHTML = ''; return; }
+    var L = (S.clients || []).filter(function (c) { var n = String(c.nom).toLowerCase(); return n.indexOf(q) >= 0 && n !== q; }).slice(0, 4);
+    box.innerHTML = L.map(function (c, i) { return '<button type="button" data-i="' + i + '">' + esc(c.nom) + '</button>'; }).join('');
+    box.querySelectorAll('button').forEach(function (b) { b.onclick = function () { var c = L[+b.dataset.i]; inp.value = c.nom; box.innerHTML = ''; if (onPick) onPick(c); }; });
+  };
+  inp.addEventListener('input', function () { draw(); if (onPick) onPick(null); });
+}
+/* ---------- OFFRES AI (popup) ---------- */
+function openOffreWizard() {
+  S.ow = S.ow && S.ow.keep ? S.ow : { k: 'client', mode: 'ai' };
+  S.ow.keep = false;
+  owRender();
+}
+function owClient(nom) { var q = String(nom || '').trim().toLowerCase(); return (S.clients || []).filter(function (x) { return String(x.nom).trim().toLowerCase() === q; })[0]; }
+function owRender(err) {
+  var W = S.ow, step = W.k === 'prix' ? 2 : 1, h = '';
+  var head = '<div class="wprog"><div style="width:' + (step * 50) + '%"></div></div><div class="note">' + step + ' / 2</div>';
+  if (step === 1) {
+    var top = (S.clients || []).filter(needRelance).slice(0, 6);
+    h = '<h2>L ayy client?</h2><label>Smiya dyal client<input id="ow-cl" autocomplete="off" value="' + esc(W.client || '') + '" placeholder="Ktbi smiya…"></label><div class="sugg" id="ow-sg"></div>' +
+      '<div id="ow-inf" class="note"></div>' +
+      (top.length ? '<div class="note" style="margin-top:10px">Khasshom relance:</div><div class="sugg" id="ow-top">' + top.map(function (c, i) { return '<button type="button" data-i="' + i + '">' + esc(c.nom) + '</button>'; }).join('') + '</div>' : '') +
+      '<label>Chno kaybi3 / nachat dyalo (ikhtiyari)<input id="ow-d" value="' + esc(W.description || '') + '" placeholder="ex: pizzeria f Témara"></label>';
+  } else {
+    h = '<h2>Thaman</h2>' + chipSel('ow-m', [['ai', '🤖 AI y9tare7 l athman'], ['prix', '✍️ Ana nktb thaman']], W.mode) +
+      '<div id="ow-pz"' + (W.mode === 'prix' ? '' : ' hidden') + '><label>Thaman li bghiti tbi3i bih (DH)<input id="ow-p" type="number" inputmode="numeric" value="' + esc(W.prix || '') + '" placeholder="ex: 800"></label></div>' +
+      '<label>Chi 7aja zayda? (ikhtiyari)<textarea id="ow-n" style="min-height:60px" placeholder="ex: bgha ghir ads, ma bghach vidéo jdida…">' + esc(W.note || '') + '</textarea></label>';
+  }
+  modal(head + '<div class="wstep">' + h + '</div>' + (err ? errBox(err) : '') +
+    '<div class="wnav">' + (step === 2 ? '<button type="button" id="ow-back">‹ Rje3</button>' : '<span></span>') +
+    '<button type="button" class="pri" id="ow-next">' + (step === 2 ? '✨ Khrej 9 offres' : 'Li jay ›') + '</button></div>');
+  if (step === 1) {
+    var info = function (c) { $('ow-inf').innerHTML = c ? '✓ Client 9dim · ' + c.n + ' commande' + (c.n > 1 ? 's' : '') + ' · akhir: ' + esc(c.dernier) + (c.lastPrix ? ' (' + n0(c.lastPrix) + ' DH)' : '') : ($('ow-cl').value.trim() ? '✳️ Client jdid' : ''); };
+    nameSuggest('ow-cl', 'ow-sg', function (c) { info(c || owClient($('ow-cl').value)); });
+    if ($('ow-top')) $('ow-top').querySelectorAll('button').forEach(function (b) { b.onclick = function () { $('ow-cl').value = top[+b.dataset.i].nom; $('ow-sg').innerHTML = ''; info(top[+b.dataset.i]); }; });
+    info(owClient(W.client));
+    if (!W.client) $('ow-cl').focus();
+  } else {
+    bindSel('ow-m', false, function (v) { W.mode = v; $('ow-pz').hidden = v !== 'prix'; if (v === 'prix') $('ow-p').focus(); });
+    $('ow-back').onclick = function () { owSave(); W.k = 'client'; owRender(); };
+  }
+  $('ow-next').onclick = owNext;
+}
+function owSave() {
+  var W = S.ow, v = function (id) { var e = $(id); return e ? e.value.trim() : null; };
+  if (W.k === 'client') { W.client = v('ow-cl'); W.description = v('ow-d'); }
+  else { W.prix = v('ow-p'); W.note = v('ow-n'); }
+}
+function owNext() {
+  var W = S.ow; owSave();
+  if (W.k === 'client') { if (!W.client) return owRender('Ktbi smiya dyal client.'); W.k = 'prix'; return owRender(); }
+  if (W.mode === 'prix' && !(+W.prix > 0)) return owRender('Ktbi thaman li bghiti tbi3i bih.');
+  var c = owClient(W.client);
+  var p = { client: W.client, description: W.description || '', mode: W.mode, prix: W.mode === 'prix' ? +W.prix : '', note: W.note || '' };
+  if (c) Object.assign(p, { dernier: c.dernier, n: c.n, moy: c.moy, lastPrix: c.lastPrix, lastJ: c.lastJ || c.joursMoy || 0, since: c.since, total: c.total });
+  var b = $('ow-next'); b.disabled = true; b.textContent = 'Kaykhdem… (15-30 sec)';
+  call('aiGenerate', S.token, 'offres', p).then(function (r) {
+    closeModal(); W.k = 'client'; W.keep = true;
+    if (S.view !== 'ai' || S.aitab !== 'offres') { S.aitab = 'offres'; go('ai'); }
+    aiResult('offres', r, p, c);
+    var t = $('ai-r'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }).catch(function (e) { b.disabled = false; b.textContent = '✨ Khrej 9 offres'; owRender(e); });
 }
 function loadScriptHistory() {
   if (!$('sc-h')) return;
