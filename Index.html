@@ -8,8 +8,10 @@
 <style>
 :root{--bg:#F6F5F4;--panel:#fff;--ink:#1C1A1F;--muted:#6C6670;--line:#E4E0E2;--brand:#D7263D;--good:#1E7F4E;--good-soft:#DDF2E6;
   --warn:#A35C00;--warn-soft:#FFF0D6;--bad:#B4232F;--bad-soft:#FCE1E3;--wa:#1FAF54}
-@media (prefers-color-scheme:dark){:root{--bg:#151316;--panel:#1F1C21;--ink:#F1EEF0;--muted:#A39CA6;--line:#36313A;--brand:#F04A5E;
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#151316;--panel:#1F1C21;--ink:#F1EEF0;--muted:#A39CA6;--line:#36313A;--brand:#F04A5E;
   --good:#5CC98F;--good-soft:#163024;--warn:#F2B04D;--warn-soft:#3A2A10;--bad:#FF7A85;--bad-soft:#3D1A1E;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#151316;--panel:#1F1C21;--ink:#F1EEF0;--muted:#A39CA6;--line:#36313A;--brand:#F04A5E;
+  --good:#5CC98F;--good-soft:#163024;--warn:#F2B04D;--warn-soft:#3A2A10;--bad:#FF7A85;--bad-soft:#3D1A1E;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Sans",Arial,sans-serif;padding-bottom:40px}
@@ -117,6 +119,13 @@ details.msg .resume{margin:8px 0;font-size:14px;line-height:1.7}
 .rr input{width:22px;height:22px;flex:none}.rr .rt{flex:1;min-width:0;display:grid;cursor:pointer}.rr .rt span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 button.wa{background:var(--wa);border-color:var(--wa);color:#fff}
 .act a.wa{display:inline-block;width:auto;padding:8px 12px;font-size:14px}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#fff;color:var(--brand);font-weight:800;overflow:hidden;vertical-align:middle;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.prof{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.prof .av{background:var(--brand);color:#fff}
+.avbtn{position:relative;padding:0;border:0;background:none;border-radius:999px}
+.avbtn i{position:absolute;right:-2px;bottom:-2px;font-style:normal;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:999px;width:24px;height:24px;line-height:22px;text-align:center}
+.prof .pn{font:800 20px "Archivo",Arial,sans-serif}.prof .pm{font-size:13px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -167,10 +176,8 @@ function renderLogin(msg) {
 function start() {
   if (!S.token) return renderLogin();
   call('getRefs', S.token).then(function (r) {
-    S.refs = r; $('who').innerHTML = esc(S.nom) + ' <button class="sm bell" id="bell" aria-label="Notifications">🔔<b id="badge" hidden></b></button> <button class="sm" id="lo">Khrej</button>';
-    $('bell').onclick = function () { go('notifs'); };
-    refreshBadge(); clearInterval(S.poll); S.poll = setInterval(refreshBadge, 60000);
-    $('lo').onclick = function () { call('logout', S.token).catch(function () {}); logoutLocal(); };
+    S.refs = r; $('who').innerHTML = ''; refreshHeader();
+    clearInterval(S.poll); S.poll = setInterval(refreshBadge, 60000);
     var tabs = S.role === 'admin'
       ? [['dash', 'Dashboard'], ['verif', 'À vérifier'], ['clients', 'Clients'], ['cmds', 'Commandes'], ['ads', 'Ads'], ['sorties', 'Sorties'], ['annee', 'Année'], ['salers', 'Salers'], ['ai', '✨ AI']]
       : [['home', '🏠 Accueil'], ['clients', 'Clients'], ['ai', '✨ AI']];
@@ -944,7 +951,7 @@ function vHome() {
     S.restes = d.restesOuverts;
     var base = d.commissionValidee, ba9i = Math.max(0, base - d.commissionPayee);
     var verifs = d.commandes.filter(function (c) { return c.statut === 'Vérifié'; });
-    show('<button class="pri big newbtn" id="h-new">＋ Commande jdida</button>' +
+    show(profileCard() + '<button class="pri big newbtn" id="h-new">＋ Commande jdida</button>' +
       '<div class="row" style="justify-content:space-between"><h1>' + esc(moisLabel(d.mois)) + '</h1>' + moisPicker() + '</div>' +
       '<div class="panel com"><div class="grp">Commission dyal chhar</div>' +
         '<div class="c3"><div><div class="l">Commission</div><div class="v">' + dh(base) + '</div></div>' +
@@ -962,7 +969,7 @@ function vHome() {
       d.months.map(function (m) { return '<tr class="click" data-m="' + m.mois + '"><td>' + esc(moisLabel(m.mois)) + '</td><td class="n">' + m.n + '</td><td class="n">' + n0(m.ca) + '</td><td class="n"><b>' + n0(m.com) + '</b></td></tr>'; }).join('') +
       '</tbody></table></div></div>');
     drawDaily(d.days);
-    $('h-new').onclick = openNew;
+    $('h-new').onclick = openNew; bindProfile();
     $('h-all').onclick = function () { S.cf = 'relance'; go('clients'); };
     $('h-pay').onclick = function () { payModal(d.mois, ba9i); };
     document.querySelectorAll('[data-del]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); var x = a.dataset.del.split('|');
@@ -1049,8 +1056,8 @@ function bulkSend(L) {
 /* ---------- OUTILS AI ---------- */
 function vAI() {
   loadClients().catch(function () {});
-  var tabs = [['script', '🎬 Script vidéo'], ['offres', '🎁 Offres'], ['affiche', '🖼️ Affiche ads'], ['vocal', '🎙️ Vocal dyal client']];
-  S.aitab = S.aitab || 'script';
+  var tabs = [['script', '🎬 Script vidéo'], ['offres', '🎁 Offres']];
+  if (S.aitab !== 'offres') S.aitab = 'script';
   show('<h1>Outils AI ✨</h1>' + chipSel('ai-t', tabs, S.aitab) + '<div class="panel" id="ai-f"></div><div id="ai-r"></div>');
   bindSel('ai-t', false, function (k) { S.aitab = k; aiForm(); });
   aiForm();
@@ -1064,7 +1071,10 @@ function aiForm() {
     '<label>Chkoun l clients dyalo?<input id="ai-ci" placeholder="ex: bnat 18-35, mamat, li bghaw ykhdmo…"></label>' +
     '<div class="form"><label>Mdina<input id="ai-v" placeholder="Témara"></label><label>Offre / promo<input id="ai-p" placeholder="ex: -20% had chhar"></label></div>' +
     '<label>Nmra / adresse (ikhtiyari)<input id="ai-co" placeholder="ex: 06…, 7da …"></label>' +
-    '<label>Nou3 dyal script</label>' + chipSel('ai-ty', [['MIX', '🔀 Mkhallat'], ['PAS', 'Mochkil → 7al'], ['HSO', 'Hook · Story · Offre'], ['OFFRE', 'Offre direct'], ['RAISONS', '3 asbab'], ['AVANT_APRES', '9bel / mn b3d'], ['POV', 'POV']], 'MIX') +
+    '<label>Nou3 dyal script</label>' + chipSel('ai-ty', [['MIX', '🔀 Mkhallat'], ['PAS', 'Mochkil → 7al'], ['HSO', 'Hook · Story · Offre'], ['OFFRE', 'Offre direct'], ['RAISONS', '3 asbab'],
+      ['AVANT_APRES', '9bel / mn b3d'], ['POV', 'POV'], ['MYTHE', 'Mythe / ghalat'], ['QUESTIONS', 'So2alat (FAQ)'], ['URGENCE', 'Urgence'], ['COMPARAISON', 'Comparaison'],
+      ['TEMOIN', 'Klam client (temoignage)'], ['HUMOUR', 'Dahk / humour'], ['EMOTION', 'Emotion'], ['DEFI', 'Défi'], ['LISTE', 'Liste (5 7wayj)']], 'MIX') +
+    '<label>Lougha</label>' + chipSel('ai-lg', [['darija', 'Darija'], ['arabe', 'العربية'], ['fr', 'Français'], ['en', 'English']], 'darija') +
     '<label>Toul</label>' + chipSel('ai-du', [['15', '15 sec'], ['30', '30 sec'], ['45', '45 sec']], '30') +
     '<label>Ch7al mn script</label>' + chipSel('ai-n', [['1', '1'], ['3', '3'], ['6', '6']], '3');
   else if (k !== 'vocal') f += '<label>Chno kaybi3 / nachat dyalo<textarea id="ai-d" style="min-height:70px" placeholder="ex: mahal dyal l7wayj dyal drari f Témara, promo -20%…"></textarea></label>' +
@@ -1074,7 +1084,8 @@ function aiForm() {
   if (k === 'vocal') f += '<label>Vocal dyal client (mn WhatsApp: partager → TIMEDIA, wla khtarih)<input type="file" accept="audio/*" id="ai-a"></label><label>Ma3lomat zayda (ikhtiyari)<input id="ai-d"></label>';
   f += '<button class="pri big" id="ai-go">✨ Khrej</button>';
   $('ai-f').innerHTML = f; $('ai-r').innerHTML = '';
-  var st = { h: 1, fm: 'carre', ty: 'MIX', du: 30, n: 3 };
+  var st = { h: 1, fm: 'carre', ty: 'MIX', du: 30, n: 3, lg: 'darija' };
+  bindSel('ai-lg', false, function (v) { st.lg = v; });
   bindSel('ai-fm', false, function (v) { st.fm = v; }); bindSel('ai-ty', false, function (v) { st.ty = v; });
   bindSel('ai-du', false, function (v) { st.du = +v; }); bindSel('ai-n', false, function (v) { st.n = +v; });
   var val = function (id) { return $(id) ? $(id).value : ''; };
@@ -1082,7 +1093,7 @@ function aiForm() {
     var b = this, nom = $('ai-cl').value.trim(), c = (S.clients || []).filter(function (x) { return x.nom === nom; })[0];
     var p = { client: nom, description: $('ai-d') ? $('ai-d').value : '', ville: $('ai-v') ? $('ai-v').value : '', promo: $('ai-p') ? $('ai-p').value : '',
       dernier: c ? c.dernier + ' (' + c.n + ' commandes, moyenne ' + c.moy + ' DH)' : '', hooks: st.h, format: st.fm,
-      avantages: val('ai-av'), probleme: val('ai-pb'), cible: val('ai-ci'), contact: val('ai-co'), type: st.ty, duree: st.du, n: st.n };
+      avantages: val('ai-av'), probleme: val('ai-pb'), cible: val('ai-ci'), contact: val('ai-co'), type: st.ty, duree: st.du, n: st.n, langue: st.lg };
     var go2 = function () {
       b.disabled = true; b.textContent = k === 'script' ? 'Kaykteb… (' + (st.n > 3 ? '40-60' : '15-30') + ' sec)' : 'Kaykhdem… (10-30 sec)';
       call('aiGenerate', S.token, k, p).then(function (r) { b.disabled = false; b.textContent = '✨ 3awd khrej'; aiResult(k, r, p, c); })
@@ -1106,10 +1117,39 @@ function aiResult(k, r, p, c) {
     return;
   }
   var tel = c && c.tel;
-  $('ai-r').innerHTML = '<div class="panel"><div class="resume" dir="rtl" id="ai-txt" contenteditable="true">' + esc(r.text) + '</div>' +
-    '<div class="act"><a href="#" id="ai-cp">📋 Copier</a>' + (tel ? '<a class="wa" href="#" id="ai-wa">📲 Sifti l ' + esc(c.nom) + '</a>' : '') + '</div></div>';
-  $('ai-cp').onclick = function (e) { e.preventDefault(); var t = $('ai-txt').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $('ai-cp').textContent = '✓ Tcopiya'; }).catch(function () { alert('Selectionni l texte w copiyih'); }); };
-  if ($('ai-wa')) $('ai-wa').onclick = function (e) { e.preventDefault(); window.open(waUrl(tel, $('ai-txt').textContent), '_blank'); };
+  var parts = k === 'script' ? String(r.text).split(/^\s*={3,}\s*$/m).map(function (x) { return x.trim(); }).filter(String) : [String(r.text)];
+  $('ai-r').innerHTML = parts.map(function (t, i) {
+    return '<div class="panel" data-i="' + i + '">' + (parts.length > 1 ? '<div class="grp">Script ' + (i + 1) + '</div>' : '') +
+      '<div class="resume" dir="auto" contenteditable="true" data-t>' + esc(t) + '</div>' +
+      '<div class="act"><a href="#" data-cp>📋 Copier</a>' + (tel ? '<a class="wa" href="#" data-wa>📲 Sifti l ' + esc(c.nom) + '</a>' : '') + '</div>' +
+      (k === 'script' ? '<details class="msg"><summary>✏️ Ma 3jbekch? Goul l AI chno ybeddel</summary>' +
+        '<textarea data-cm placeholder="ex: zid l avantage dyal chahada, dir hook b so2al, 9eser chwiya, zid l offre -20%…" style="min-height:70px;margin-top:8px"></textarea>' +
+        '<button class="pri" data-rv style="margin-top:8px;width:100%">✨ Beddel had script</button></details>' : '') + '</div>';
+  }).join('');
+  $('ai-r').querySelectorAll('.panel').forEach(function (box) {
+    var txt = box.querySelector('[data-t]');
+    box.querySelector('[data-cp]').onclick = function (e) { e.preventDefault(); var a = this; copyText(txt.innerText).then(function () { a.textContent = '✓ Tcopiya'; setTimeout(function () { a.textContent = '📋 Copier'; }, 1500); }); };
+    var w = box.querySelector('[data-wa]'); if (w) w.onclick = function (e) { e.preventDefault(); window.open(waUrl(tel, txt.innerText), '_blank'); };
+    var rv = box.querySelector('[data-rv]');
+    if (rv) rv.onclick = function () {
+      var cm = box.querySelector('[data-cm]').value.trim();
+      if (!cm) { box.querySelector('[data-cm]').focus(); return; }
+      rv.disabled = true; rv.textContent = 'Kaybeddel… (10-20 sec)';
+      call('aiGenerate', S.token, 'revise', Object.assign({}, p, { script: txt.innerText, comment: cm })).then(function (x) {
+        txt.textContent = String(x.text).split(/^\s*={3,}\s*$/m)[0].trim(); rv.disabled = false; rv.textContent = '✨ Beddel 3awtani';
+        box.querySelector('[data-cm]').value = ''; txt.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }).catch(function (e) { rv.disabled = false; rv.textContent = '✨ Beddel had script'; alert(e.message); });
+    };
+  });
+}
+function copyText(t) {
+  return new Promise(function (res) {
+    var done = function () { res(); };
+    try { if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(done, fb); } catch (e) {}
+    fb();
+    function fb() { var a = document.createElement('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select();
+      try { document.execCommand('copy'); } catch (e) {} a.remove(); done(); }
+  });
 }
 function composeAffiche(src, titre, tel, format) {
   return new Promise(function (res) {
@@ -1129,6 +1169,134 @@ function composeAffiche(src, titre, tel, format) {
   });
 }
 
+/* ================= V13: PROFIL, LOUGHA, MODE SOMBRE ================= */
+var I18N = {
+  // [darija, العربية, français]
+  'Accueil': ['الرئيسية', 'Accueil'], '🏠 Accueil': ['🏠 الرئيسية', '🏠 Accueil'], 'Clients': ['الزبناء', 'Clients'], '✨ AI': ['✨ الذكاء الاصطناعي', '✨ IA'],
+  'Khrej': ['خروج', 'Déconnexion'], '＋ Commande jdida': ['＋ طلبية جديدة', '＋ Nouvelle commande'], 'Commission dyal chhar': ['عمولة الشهر', 'Commission du mois'],
+  'Commission': ['العمولة', 'Commission'], 'Tkhelsat': ['تخلصات', 'Payée'], 'Ba9i lik': ['باقي ليك', 'Reste à payer'],
+  '💸 Sjjli khlass dyal commission': ['💸 سجلي خلاص العمولة', '💸 Enregistrer un paiement de commission'], 'Commandes dyal chhar': ['طلبيات الشهر', 'Commandes du mois'],
+  'Kolhom vérifiées': ['كلهم متحقق منهم', 'Toutes vérifiées'], '⏰ Khasshom Relance': ['⏰ خاصهم Relance', '⏰ Clients à relancer'], 'Kolhom ›': ['كلهم ›', 'Tous ›'],
+  'Kaytcharga…': ['كيتشارجا…', 'Chargement…'], 'Walou daba 👏': ['والو دابا 👏', 'Rien pour le moment 👏'], 'Offre ›': ['عرض ›', 'Offre ›'],
+  'Kol nhar': ['كل نهار', 'Par jour'], 'Kol chhar': ['كل شهر', 'Par mois'], 'Chhar': ['الشهر', 'Mois'], 'Commandes': ['الطلبيات', 'Commandes'],
+  '7ta commande vérifiée had chhar.': ['حتى طلبية ما تحققات هاد الشهر.', 'Aucune commande vérifiée ce mois-ci.'],
+  'Smiya dyal client': ['سمية الزبون', 'Nom du client'], 'Nmra dyal client': ['نمرة الزبون', 'Téléphone du client'], 'Chno l commande?': ['شنو هي الطلبية؟', 'Quelle commande ?'],
+  'T9dri tkhtari ktar mn wa7d.': ['تقدري تختاري كثر من وحدة.', 'Vous pouvez en choisir plusieurs.'], 'Ch7al mn nhar': ['شحال من نهار', 'Nombre de jours'],
+  'Budget f nhar ($)': ['الميزانية فالنهار ($)', 'Budget par jour ($)'], 'Chkoun ghadi ylanci': ['شكون غادي يلونصي', 'Lancé par'],
+  'Ghadi tkriyi lih page?': ['غادي تكريي ليه صفحة؟', 'Création de page ?'], 'Lflous': ['الفلوس', 'Paiement'], '✅ Khelles kolchi': ['✅ خلص كلشي', '✅ Tout payé'],
+  '💵 Avance': ['💵 تسبيق', '💵 Avance'], '🔁 Reste dyal commande 9dima': ['🔁 الباقي ديال طلبية قديمة', '🔁 Reste d\'une ancienne commande'],
+  'Prix total dyal commande (DH)': ['الثمن الكامل ديال الطلبية (درهم)', 'Prix total de la commande (DH)'], 'Avance li khelles (DH)': ['التسبيق اللي خلص (درهم)', 'Avance payée (DH)'],
+  'Reçu': ['الوصل', 'Reçu'], '📷 Tswira': ['📷 تصويرة', '📷 Photo'], '✍️ Message': ['✍️ ميساج', '✍️ Message'], 'Banque': ['البنك', 'Banque'],
+  'Raje3i w sifti': ['راجعي وصيفطي', 'Vérifiez et envoyez'], '‹ Rje3': ['‹ رجع', '‹ Retour'], 'Li jay ›': ['اللي جاي ›', 'Suivant ›'],
+  'Sifti l responsable': ['صيفطي للمسؤول', 'Envoyer au responsable'], 'Bravo 3lik!': ['برافو عليك!', 'Bravo !'],
+  '📲 Sifti l responsable f WhatsApp': ['📲 صيفطي للمسؤول فواتساب', '📲 Envoyer au responsable sur WhatsApp'], '+ Commande khra': ['+ طلبية أخرى', '+ Autre commande'],
+  'Rje3 l accueil': ['رجع للرئيسية', 'Retour à l\'accueil'], 'B lflous': ['بالفلوس', 'Payante'], 'Cadeau': ['كادو', 'Offerte'], 'B ch7al (DH)': ['بشحال (درهم)', 'Prix (DH)'],
+  '📣 Ads': ['📣 إشهار', '📣 Ads'], '🎬 Vidéo': ['🎬 فيديو', '🎬 Vidéo'], 'Format': ['الفورما', 'Format'], 'Voix': ['الصوت', 'Voix'], 'Langage': ['اللغة', 'Langue'],
+  'Khass relance': ['خاصهم Relance', 'À relancer'], 'Kay3awdo ychriw': ['كيعاودو يشريو', 'Clients fidèles'], 'Tertib': ['الترتيب', 'Tri'],
+  'Outils AI ✨': ['أدوات الذكاء الاصطناعي ✨', 'Outils IA ✨'], '🎬 Script vidéo': ['🎬 سكريبت فيديو', '🎬 Script vidéo'], '🎁 Offres': ['🎁 العروض', '🎁 Offres'],
+  'Client (ikhtiyari)': ['الزبون (اختياري)', 'Client (optionnel)'], 'Chno kaybi3 / nachat dyalo': ['شنو كيبيع / النشاط ديالو', 'Ce qu\'il vend / activité'],
+  'Les avantages (chno kay3ti, 3-5 7wayj)': ['المزايا (3 حتى 5 حوايج)', 'Les avantages (3 à 5)'], 'Chno l mochkil li kaydawi l client dyalo?': ['شنو المشكل اللي كيحل للزبناء ديالو؟', 'Quel problème résout-il ?'],
+  'Chkoun l clients dyalo?': ['شكون هوما الزبناء ديالو؟', 'Qui sont ses clients ?'], 'Mdina': ['المدينة', 'Ville'], 'Offre / promo': ['العرض / البرومو', 'Offre / promo'],
+  'Nmra / adresse (ikhtiyari)': ['النمرة / العنوان (اختياري)', 'Téléphone / adresse (optionnel)'], 'Nou3 dyal script': ['نوع السكريبت', 'Type de script'],
+  'Lougha': ['اللغة', 'Langue'], 'Toul': ['المدة', 'Durée'], 'Ch7al mn script': ['شحال من سكريبت', 'Nombre de scripts'], '✨ Khrej': ['✨ خرج', '✨ Générer'],
+  '✨ 3awd khrej': ['✨ عاود خرج', '✨ Régénérer'], '📋 Copier': ['📋 كوبي', '📋 Copier'], '✏️ Ma 3jbekch? Goul l AI chno ybeddel': ['✏️ ما عجبكش؟ قول للذكاء الاصطناعي شنو يبدل', '✏️ Pas satisfait ? Dites à l\'IA quoi changer'],
+  '✨ Beddel had script': ['✨ بدل هاد السكريبت', '✨ Modifier ce script'], 'Notifications': ['الإشعارات', 'Notifications'],
+  '⚙️ Paramètres': ['⚙️ الإعدادات', '⚙️ Paramètres'], 'Thème': ['المظهر', 'Thème'], '☀️ Clair': ['☀️ فاتح', '☀️ Clair'], '🌙 Sombre': ['🌙 غامق', '🌙 Sombre'], '📱 Auto': ['📱 أوتوماتيك', '📱 Auto'],
+  '📷 Beddel tswira': ['📷 بدل التصويرة', '📷 Changer la photo'], 'Sedd': ['سد', 'Fermer'], 'Dkhol': ['دخول', 'Connexion'], 'Nmra dyal WhatsApp': ['نمرة الواتساب', 'Numéro WhatsApp'], 'Code': ['الكود', 'Code']
+};
+var I18N_RX = [
+  [/^\+ (.+) katsna vérification$/, ['+ $1 كتسنى التحقق', '+ $1 en attente de vérification']],
+  [/^(\d+) katsna vérification$/, ['$1 كتسنى التحقق', '$1 en attente de vérification']],
+  [/^Commandes dyali \((\d+)\)$/, ['الطلبيات ديالي ($1)', 'Mes commandes ($1)']],
+  [/^(\d+) clients — cochi w sifti l kolhom dqa wa7da, wla cliqui 3la wa7d\.$/, ['$1 زبون — كوشي وصيفطي لكلهم دقة وحدة، ولا كليكي على واحد.', '$1 clients — cochez et envoyez à tous d\'un coup, ou cliquez sur un client.']],
+  [/^📲 Sifti l offres l \((\d+)\) clients$/, ['📲 صيفطي العروض لـ ($1) زبون', '📲 Envoyer les offres à ($1) clients']]
+];
+function lang() { try { return localStorage.getItem('timedia_lang') || 'darija'; } catch (e) { return 'darija'; } }
+var I18N_ORIG = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+function trText(t, L) {
+  var k = t.trim(); if (!k) return null;
+  var idx = L === 'ar' ? 0 : 1, v = I18N[k];
+  if (v) return t.replace(k, v[idx]);
+  for (var i = 0; i < I18N_RX.length; i++) if (I18N_RX[i][0].test(k)) return t.replace(k, k.replace(I18N_RX[i][0], I18N_RX[i][1][idx]));
+  return null;
+}
+function translateNode(root) {
+  var L = lang(); if (L === 'darija' || !root) return;
+  var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, list = [];
+  while ((n = w.nextNode())) list.push(n);
+  list.forEach(function (n) { if (n.parentNode && /SCRIPT|STYLE|TEXTAREA/.test(n.parentNode.nodeName)) return; if (n.parentNode && n.parentNode.closest && n.parentNode.closest('[data-t],.resume,.opt')) return;
+    var r = trText(n.nodeValue, L); if (r !== null && r !== n.nodeValue) n.nodeValue = r; });
+}
+function startI18n() {
+  var L = lang();
+  document.documentElement.lang = L === 'ar' ? 'ar' : 'fr';
+  if (!window.MutationObserver) return;
+  translateNode(document.body);
+  new MutationObserver(function (ms) { ms.forEach(function (m) { m.addedNodes.forEach(function (x) { if (x.nodeType === 1) translateNode(x); else if (x.nodeType === 3 && x.parentNode) translateNode(x.parentNode); }); }); })
+    .observe(document.body, { childList: true, subtree: true });
+}
+function applyTheme() {
+  var t = 'auto'; try { t = localStorage.getItem('timedia_theme') || 'auto'; } catch (e) {}
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+}
+applyTheme();
+
+/* ---------- MOTIVATION ---------- */
+var MOTIV = {
+  darija: ['كل Message هو فرصة. جاوبي بسرعة ✨', 'الكليان اللي ما رجعش… كيتسنى Relance منك 😉', 'اليوم نهار زوين باش تسدي كوموند جديدة 💪', 'ماشي غير بيع… راك كتعاوني الناس يكبرو المشاريع ديالهم 🚀', 'كل "لا" كتقربك من "إيه" 🔥', 'الاستمرارية كتغلب الموهبة. كملي! 🏆', 'ابتسامة فالصوت كتبيع كثر من أي برومو 😊'],
+  ar: ['كل رسالة فرصة جديدة، أجيبي بسرعة ✨', 'الزبون الذي لم يعد ينتظر منك تذكيرا 😉', 'اليوم يوم جميل لإغلاق صفقة جديدة 💪', 'أنت لا تبيعين فقط، بل تساعدين الناس على تكبير مشاريعهم 🚀', 'كل "لا" تقربك من "نعم" 🔥', 'الاستمرارية تغلب الموهبة. واصلي! 🏆'],
+  fr: ['Chaque message est une opportunité. Répondez vite ✨', 'Le client qui n\'est pas revenu attend votre relance 😉', 'Aujourd\'hui est un bon jour pour signer une nouvelle commande 💪', 'Vous ne vendez pas, vous aidez des projets à grandir 🚀', 'Chaque « non » vous rapproche d\'un « oui » 🔥', 'La régularité bat le talent. Continuez ! 🏆']
+};
+function motivation() { var L = MOTIV[lang()] || MOTIV.darija, d = new Date(); return L[(d.getDate() + d.getMonth()) % L.length]; }
+function avatarHTML(size) {
+  var p = S.refs && S.refs.photo, n = (S.nom || '?').trim();
+  return '<span class="av" style="width:' + size + 'px;height:' + size + 'px;font-size:' + Math.round(size * 0.42) + 'px">' + (p ? '<img src="' + p + '" alt="">' : esc(n.charAt(0).toUpperCase())) + '</span>';
+}
+function profileCard() {
+  return '<div class="prof"><button type="button" class="avbtn" id="pf-ph" aria-label="Tswira">' + avatarHTML(64) + '<i>📷</i></button>' +
+    '<div><div class="pn">' + esc(S.nom) + '</div><div class="pm" dir="auto">' + esc(motivation()) + '</div></div></div>';
+}
+function bindProfile() { var b = $('pf-ph'); if (b) b.onclick = pickPhoto; }
+function pickPhoto() {
+  var i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*';
+  i.onchange = function () {
+    var f = i.files[0]; if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var s = 128, c = document.createElement('canvas'); c.width = s; c.height = s;
+        var k = Math.max(s / img.width, s / img.height), x = c.getContext('2d');
+        x.drawImage(img, (s - img.width * k) / 2, (s - img.height * k) / 2, img.width * k, img.height * k);
+        var d = c.toDataURL('image/jpeg', 0.72);
+        call('setPhoto', S.token, d).then(function () { S.refs.photo = d; refreshHeader(); if (S.view === 'home') vHome(); }).catch(function (e) { alert(e.message); });
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  };
+  i.click();
+}
+function refreshHeader() {
+  $('who').innerHTML = (S.role === 'saler' ? avatarHTML(28) + ' ' : '') + esc(S.nom) +
+    ' <button class="sm bell" id="bell" aria-label="Notifications">🔔<b id="badge" hidden></b></button> <button class="sm" id="set" aria-label="Paramètres">⚙️</button> <button class="sm" id="lo">Khrej</button>';
+  $('bell').onclick = function () { go('notifs'); };
+  $('set').onclick = settingsModal;
+  $('lo').onclick = function () { call('logout', S.token).catch(function () {}); logoutLocal(); };
+  refreshBadge();
+}
+function settingsModal() {
+  var L = lang(), T = 'auto'; try { T = localStorage.getItem('timedia_theme') || 'auto'; } catch (e) {}
+  modal('<h2>⚙️ Paramètres</h2>' +
+    (S.role === 'saler' ? '<button type="button" id="st-ph">📷 Beddel tswira</button>' : '') +
+    '<label>Lougha</label>' + chipSel('st-lg', [['darija', 'Darija'], ['ar', 'العربية'], ['fr', 'Français']], L) +
+    '<label>Thème</label>' + chipSel('st-th', [['light', '☀️ Clair'], ['dark', '🌙 Sombre'], ['auto', '📱 Auto']], T));
+  if ($('st-ph')) $('st-ph').onclick = function () { closeModal(); pickPhoto(); };
+  bindSel('st-th', false, function (v) { try { localStorage.setItem('timedia_theme', v); } catch (e) {} applyTheme(); });
+  bindSel('st-lg', false, function (v) { try { localStorage.setItem('timedia_lang', v); } catch (e) {} document.documentElement.lang = v === 'ar' ? 'ar' : 'fr'; closeModal(); start(); });
+}
+
+startI18n();
 start();
 </script>
 </body>
