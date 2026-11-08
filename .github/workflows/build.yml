@@ -1,0 +1,28 @@
+name: build-apk
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - run: bash build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TIMEDIA-apk
+          path: out/TIMEDIA.apk
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ github.run_number }}" out/TIMEDIA.apk --title "TIMEDIA ${{ github.run_number }}" --notes "Application TIMEDIA"
