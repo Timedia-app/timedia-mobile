@@ -120,15 +120,61 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        web.loadUrl("file:///android_asset/index.html");
+        loadUi();
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
         NotifWorker.schedule(this);
     }
 
+    // L'interface katji mn GitHub (release « app.html »): ay tabdil kayban bla ma n3awdo l'installation.
+    static final String BASE = "https://app.timedia.local/";
+    static final String UI_URL = "https://github.com/Timedia-app/timedia-mobile/releases/latest/download/app.html";
+
+    private static String readAll(java.io.InputStream in) throws java.io.IOException {
+        java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) > 0) b.write(buf, 0, n);
+        in.close();
+        return new String(b.toByteArray(), "UTF-8");
+    }
+
+    private void loadUi() {
+        String html = null;
+        final java.io.File cache = new java.io.File(getFilesDir(), "app.html");
+        try { if (cache.exists()) html = readAll(new java.io.FileInputStream(cache)); } catch (Exception e) { html = null; }
+        if (html == null) {
+            try { html = readAll(getAssets().open("index.html")); } catch (Exception e) { html = "<p>Erreur</p>"; }
+        }
+        web.loadDataWithBaseURL(BASE, html, "text/html", "utf-8", null);
+        final String current = html;
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    java.net.HttpURLConnection h = (java.net.HttpURLConnection) new java.net.URL(UI_URL).openConnection();
+                    h.setInstanceFollowRedirects(true);
+                    h.setConnectTimeout(15000);
+                    h.setReadTimeout(30000);
+                    if (h.getResponseCode() != 200) return;
+                    final String fresh = readAll(h.getInputStream());
+                    if (fresh.length() < 20000 || fresh.indexOf("TIMEDIA") < 0 || fresh.equals(current)) return;
+                    java.io.FileOutputStream o = new java.io.FileOutputStream(cache);
+                    o.write(fresh.getBytes("UTF-8"));
+                    o.close();
+                    runOnUiThread(new Runnable() {
+                        public void run() { web.loadDataWithBaseURL(BASE, fresh, "text/html", "utf-8", null); }
+                    });
+                } catch (Exception e) {
+                    // ma kaynch internet: kanb9aw b l version li 3ndna
+                }
+            }
+        }).start();
+    }
+
     private boolean openExternal(Uri u) {
         if ("file".equals(u.getScheme())) return false;
+        if (u.toString().startsWith(BASE)) return true;
         try {
             Intent i = new Intent(Intent.ACTION_VIEW, u);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -406,6 +452,7 @@ SAFlAwQCAQUABCCesZ3nTABkvA0y0LlrQ6empcz+yBeeju4vwjyWdroAzwQUfRVWiYOYrEGva1Q+
 Rwfa/YUxLdoCAicQ
 __TIMEDIA_EOF__
 python3 android/patch_index.py Index.html android/app/src/main/assets/index.html
+cp android/app/src/main/assets/index.html out/app.html
 cd android
 gradle assembleRelease --no-daemon --stacktrace
 cp app/build/outputs/apk/release/app-release.apk ../out/TIMEDIA.apk
