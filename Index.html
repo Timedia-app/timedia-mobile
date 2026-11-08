@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="theme-color" content="#D7263D">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F6F5F4;--panel:#fff;--ink:#1C1A1F;--muted:#6C6670;--line:#E4E0E2;--brand:#D7263D;--good:#1E7F4E;--good-soft:#DDF2E6;
+  --warn:#A35C00;--warn-soft:#FFF0D6;--bad:#B4232F;--bad-soft:#FCE1E3;--wa:#1FAF54}
+@media (prefers-color-scheme:dark){:root{--bg:#151316;--panel:#1F1C21;--ink:#F1EEF0;--muted:#A39CA6;--line:#36313A;--brand:#F04A5E;
+  --good:#5CC98F;--good-soft:#163024;--warn:#F2B04D;--warn-soft:#3A2A10;--bad:#FF7A85;--bad-soft:#3D1A1E;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Sans",Arial,sans-serif;padding-bottom:40px}
+header{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+header .logo{font:800 19px "Archivo",Arial,sans-serif;letter-spacing:.02em}
+header .who{margin-left:auto;font-size:13px;opacity:.9}
+header button{background:rgba(255,255,255,.18);color:#fff;border:0}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:48px;z-index:4}
+nav button{background:transparent;border:0;color:var(--muted);font-weight:600;padding:8px 10px;border-radius:8px;white-space:nowrap}
+nav button.on{background:var(--bg);color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:14px 16px;display:grid;gap:14px}
+h1,h2{font-family:"Archivo",Arial,sans-serif;margin:0} h1{font-size:21px} h2{font-size:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;min-width:0}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi .v{font:700 22px "Archivo",Arial,sans-serif;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi.hero{border-color:var(--brand);box-shadow:inset 0 3px 0 var(--brand)}
+label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px;width:100%}
+textarea{min-height:90px}
+.form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.full{grid-column:1/-1}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 14px;cursor:pointer}
+button.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+button.big{width:100%;padding:14px;font-size:16px}
+button.sm{padding:5px 9px;font-size:13px}
+button:disabled{opacity:.55}
+.seg{display:flex;gap:6px}.seg button{flex:1}.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tbox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.n,th.n{text-align:right}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink)}
+tr.sub td{font-weight:600;background:var(--bg)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.ok{background:var(--good-soft);color:var(--good)}.wait{background:var(--warn-soft);color:var(--warn)}.no{background:var(--bad-soft);color:var(--bad)}
+.neg{color:var(--bad)}.muted{color:var(--muted)}.small{font-size:12px}
+.err{background:var(--bad-soft);color:var(--bad);padding:10px;border-radius:10px}
+.note{font-size:12px;color:var(--muted)}
+.success{text-align:center;display:grid;gap:12px;justify-items:center}
+.success .big-emoji{font-size:54px}
+.resume{white-space:pre-wrap;text-align:left;background:var(--bg);border-radius:10px;padding:12px;font-size:14px;width:100%}
+a.wa{display:block;width:100%;text-align:center;background:var(--wa);color:#fff;text-decoration:none;font-weight:700;padding:15px;border-radius:12px;font-size:16px}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:6px;background:var(--panel)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bars{display:flex;align-items:flex-end;gap:3px;height:80px;border-bottom:1px solid var(--line)}
+.bars div{flex:1;background:var(--brand);border-radius:3px 3px 0 0;min-height:2px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chips button{padding:6px 11px;font-size:13px;border-radius:999px;white-space:nowrap}
+.chips button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chart{display:grid;gap:4px}
+.cbars{display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--line)}
+.cbars button{flex:1;min-width:0;padding:0;border:0;border-radius:3px 3px 0 0;background:var(--brand);min-height:2px;opacity:.85}
+.cbars button.negb{background:var(--bad);opacity:.5}
+.cbars button.sel{opacity:1;outline:2px solid var(--ink)}
+.cbars button.zero{background:var(--line)}
+.xl{display:flex;gap:2px;font-size:10px;color:var(--muted)}.xl span{flex:1;min-width:0;text-align:center;overflow:hidden}
+.ymax{font-size:11px;color:var(--muted)}
+.cap{background:var(--bg);border-radius:10px;padding:9px 11px;font-size:13px}
+.bell{position:relative}
+.bell b{position:absolute;top:-6px;right:-6px;background:#fff;color:var(--brand);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px}
+.nitem{border-left:4px solid var(--line)}.nitem.new{border-left-color:var(--brand)}
+.nitem .t{font-weight:700}
+ol.steps{margin:0;padding-left:20px;display:grid;gap:8px}
+.li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}.li span{color:var(--ink)}.li small{display:block;color:var(--muted);font-size:12px}
+.li b{font-variant-numeric:tabular-nums;white-space:nowrap}.li.tot{border-top:2px solid var(--ink);border-bottom:0;padding-top:11px}.li.tot span{font-weight:700}
+.grp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+.big3{display:grid;gap:10px;grid-template-columns:repeat(3,1fr)}
+.big3 .kpi .v{font-size:19px}.kpi.in{box-shadow:inset 0 3px 0 var(--good)}.kpi.out{box-shadow:inset 0 3px 0 var(--bad)}
+@media (max-width:420px){.big3{grid-template-columns:1fr 1fr}.big3 .kpi.hero{grid-column:1/-1}}
+.oc{border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:grid;gap:4px;background:var(--panel)}
+.oc .top{display:flex;justify-content:space-between;gap:8px;align-items:center}.oc .top b{font-size:15px}
+.oc .meta{font-size:12px;color:var(--muted)}.oc .nums{display:flex;gap:12px;flex-wrap:wrap;font-size:13px}.oc .nums span b{font-variant-numeric:tabular-nums}
+.alert{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-weight:600}
+tr.click{cursor:pointer}
+.oc .act{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.oc .act a{font-size:13px;font-weight:600;text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--line);color:var(--ink)}
+.oc .act a.wa{display:inline-block;width:auto;background:var(--wa);color:#fff;border-color:var(--wa);padding:6px 10px;font-size:13px}
+.relance{font-size:13px;font-weight:600;color:var(--bad)}
+details.msg{border-top:1px dashed var(--line);padding-top:6px}details.msg summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--wa)}
+details.msg .resume{margin:8px 0;font-size:14px;line-height:1.7}
+.opts{display:grid;gap:8px;margin:8px 0}.opt{white-space:pre-wrap;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:14px;line-height:1.7;cursor:pointer;background:var(--bg)}
+.opt.on{border-color:var(--wa);box-shadow:inset 0 0 0 1px var(--wa)}
+.hb{display:grid;gap:3px}.hb .hl{display:flex;justify-content:space-between;gap:8px;font-size:13px}.hb .hl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb .ht{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}.hb .ht div{height:100%;background:var(--brand);border-radius:4px}
+#dtc{display:grid;gap:14px}
+.prev img{max-width:160px;border-radius:8px;border:1px solid var(--line)}
+.loading{opacity:.6;pointer-events:none}
+</style>
+</head>
+<body>
+<header><span class="logo">TIMEDIA</span><span class="who" id="who"></span></header>
+<nav id="nav" hidden></nav>
+<main id="app"><div class="panel">Kaytcharga…</div></main>
+
+<script>
+var S = { token: null, role: null, nom: null, refs: null, view: null, mois: null, data: null };
+try { var saved = JSON.parse(localStorage.getItem('timedia_session') || 'null'); if (saved) { S.token = saved.token; S.role = saved.role; S.nom = saved.nom; } } catch (e) {}
+S.mois = new Date().toISOString().slice(0, 7);
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function n0(v) { return Math.round(v || 0).toLocaleString('fr-FR').replace(/ | /g, ' '); }
+function dh(v) { return n0(v) + ' DH'; }
+function pct(v) { return isFinite(v) ? Math.round(v * 100) + '%' : '–'; }
+function moisLabel(M) { var m = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']; return m[+M.slice(5, 7) - 1] + ' ' + M.slice(0, 4); }
+function call(fn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function (res, rej) {
+    var r = google.script.run.withSuccessHandler(res).withFailureHandler(function (e) {
+      if (String(e && e.message).indexOf('SESSION') >= 0) { logoutLocal(); rej(new Error('Session sallat, dkhli 3awtani.')); } else rej(e);
+    });
+    r[fn].apply(r, args);
+  });
+}
+function saveSession() { try { localStorage.setItem('timedia_session', JSON.stringify({ token: S.token, role: S.role, nom: S.nom })); } catch (e) {} }
+function logoutLocal() { S.token = null; try { localStorage.removeItem('timedia_session'); } catch (e) {} renderLogin(); }
+function show(html) { $('app').innerHTML = html; window.scrollTo(0, 0); }
+function errBox(e) { return '<div class="err">' + esc(e && e.message || e) + '</div>'; }
+
+/* ---------------- LOGIN ---------------- */
+function renderLogin(msg) {
+  $('nav').hidden = true; $('who').textContent = '';
+  show('<div class="panel" style="max-width:420px;margin:30px auto"><h1>Dkhol</h1>' + (msg ? errBox(msg) : '') +
+    '<label>Nmra dyal WhatsApp<input id="l-tel" inputmode="tel" autocomplete="tel" placeholder="06…"></label>' +
+    '<label>Code<input id="l-code" inputmode="numeric" type="password" autocomplete="current-password"></label>' +
+    '<button class="pri big" id="l-btn">Dkhol</button><p class="note">Code kay3tih lik Maddah.</p></div>');
+  $('l-btn').onclick = function () {
+    var b = this; b.disabled = true;
+    call('login', $('l-tel').value, $('l-code').value).then(function (r) {
+      S.token = r.token; S.role = r.role; S.nom = r.nom; saveSession(); start();
+    }).catch(function (e) { b.disabled = false; renderLogin(e.message); });
+  };
+}
+
+/* ---------------- START ---------------- */
+function start() {
+  if (!S.token) return renderLogin();
+  call('getRefs', S.token).then(function (r) {
+    S.refs = r; $('who').innerHTML = esc(S.nom) + ' <button class="sm bell" id="bell" aria-label="Notifications">🔔<b id="badge" hidden></b></button> <button class="sm" id="lo">Khrej</button>';
+    $('bell').onclick = function () { go('notifs'); };
+    refreshBadge(); clearInterval(S.poll); S.poll = setInterval(refreshBadge, 60000);
+    $('lo').onclick = function () { call('logout', S.token).catch(function () {}); logoutLocal(); };
+    var tabs = S.role === 'admin'
+      ? [['dash', 'Dashboard'], ['verif', 'À vérifier'], ['clients', 'Clients'], ['cmds', 'Commandes'], ['ads', 'Ads'], ['sorties', 'Sorties'], ['annee', 'Année'], ['salers', 'Salers']]
+      : [['home', 'Commandes dyali'], ['new', '+ Commande'], ['clients', 'Clients'], ['reste', 'Reste']];
+    $('nav').hidden = false;
+    $('nav').innerHTML = tabs.map(function (t) { return '<button data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('');
+    Array.prototype.forEach.call($('nav').children, function (b) { b.onclick = function () { go(b.dataset.v); }; });
+    go(tabs[S.role === 'admin' ? 0 : 1][0]);
+  }).catch(function (e) { renderLogin(e.message); });
+}
+function go(v) {
+  S.view = v;
+  Array.prototype.forEach.call($('nav').children, function (b) { b.classList.toggle('on', b.dataset.v === v); });
+  ({ clients: vClients, notifs: vNotifs, home: vHome, new: vNew, reste: vReste, dash: vDash, verif: vVerif, cmds: vCmds, ads: vAds, sorties: vSorties, annee: vAnnee, salers: vSalers })[v]();
+}
+function moisPicker() { return '<label style="max-width:200px">Chhar<input type="month" id="mois" value="' + S.mois + '"></label>'; }
+function bindMois(fn) { var m = $('mois'); if (m) m.onchange = function () { if (m.value) { S.mois = m.value; fn(); } }; }
+
+/* ---------------- PHOTO ---------------- */
+function readPhoto(file) {
+  return new Promise(function (res, rej) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1400, w = img.width, h = img.height, k = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = function () { rej(new Error('Tswira ma t9rach')); };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function recuBlock(prefix) {
+  return '<div class="full panel" style="padding:10px"><b>Reçu dyal lflous</b>' +
+    '<div class="seg"><button type="button" class="on" data-recu="photo">📷 Tswira</button><button type="button" data-recu="msg">✍️ Message</button></div>' +
+    '<div id="' + prefix + '-photo-box"><input type="file" accept="image/*" id="' + prefix + '-photo"><div class="prev" id="' + prefix + '-prev"></div></div>' +
+    '<div id="' + prefix + '-msg-box" hidden><textarea id="' + prefix + '-msg" placeholder="ex: Virement CIH 500 DH mn smiya …"></textarea></div></div>';
+}
+function bindRecu(prefix, state) {
+  document.querySelectorAll('[data-recu]').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('[data-recu]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      state.mode = b.dataset.recu;
+      $(prefix + '-photo-box').hidden = state.mode !== 'photo'; $(prefix + '-msg-box').hidden = state.mode !== 'msg';
+    };
+  });
+  $(prefix + '-photo').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    readPhoto(f).then(function (d) { state.photo = d; $(prefix + '-prev').innerHTML = '<img src="' + d + '" alt="reçu">'; })
+      .catch(function (e) { alert(e.message); });
+  };
+}
+function successScreen(title, resume, again) {
+  var wa = 'https://wa.me/' + S.refs.whatsapp + '?text=' + encodeURIComponent(resume);
+  show('<div class="panel success"><div class="big-emoji">🎉</div><h1>' + esc(title) + '</h1>' +
+    '<p class="muted">Tsjlat f platform w f sheet dyalek.</p><div class="resume">' + esc(resume) + '</div>' +
+    '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">Sifti résumé l responsable f WhatsApp</a>' +
+    '<div class="row"><button id="again">' + esc(again) + '</button><button id="tohome">Commandes dyali</button></div></div>');
+  $('again').onclick = function () { go(S.view); };
+  $('tohome').onclick = function () { go('home'); };
+}
+
+/* ---------------- SALER: NOUVELLE COMMANDE ---------------- */
+function opt(list, blank) { return (blank ? '<option value="">' + blank + '</option>' : '') + list.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join(''); }
+function vNew() {
+  var sv = S.refs.services.map(function (s) { return s.nom; });
+  var st = { mode: 'photo', photo: null };
+  show('<h1>Commande jdida</h1><form class="panel form" id="f">' +
+    '<label class="full">Nom de projet / client<input name="client" required placeholder="ex: doudrar"></label>' +
+    '<label>Tel du client<input name="tel" inputmode="tel"></label>' +
+    '<label>Date<input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></label>' +
+    '<label class="full">Service<select name="service" id="svc" required>' + opt(sv, '— Khtari service —') + '</select></label>' +
+    '<label>Jours ads<input name="jours" type="number" min="0" inputmode="numeric"></label>' +
+    '<label>Budget client ($/jour)<input name="budgetUsd" type="number" min="0" step="0.5" inputmode="decimal" placeholder="5"></label>' +
+    '<label>Lancé par<select name="lancePar">' + opt(['Media buyer', 'Maddah']) + '</select></label>' +
+    '<label>Prix de vente<input name="prix" id="prix" type="number" min="0" inputmode="numeric" required></label>' +
+    '<label>Avance<input name="avance" type="number" min="0" inputmode="numeric" required></label>' +
+    '<label>Banque<select name="banque">' + opt(S.refs.banques) + '</select></label>' +
+    '<label id="cm-box" hidden>Commission (sur mesure)<input name="commissionManuelle" type="number" min="0"></label>' +
+    '<label>Format<input name="format" value="Facebook et Instagram"></label>' +
+    '<label>Voix<select name="voix">' + opt(['bnt', 'wld', 'bla voix']) + '</select></label>' +
+    '<label>Langage<select name="langage">' + opt(['darija', 'français', 'arabe']) + '</select></label>' +
+    '<label class="full">Note<textarea name="note" style="min-height:60px"></textarea></label>' +
+    recuBlock('c') + '<div class="full" id="ferr"></div>' +
+    '<button class="pri big full" type="submit" id="send">Enregistrer la commande</button></form>');
+  bindRecu('c', st);
+  $('svc').onchange = function () {
+    var s = S.refs.services.filter(function (x) { return x.nom === $('svc').value; })[0];
+    if (s && s.prix != null && !$('prix').value) $('prix').value = s.prix;
+    $('cm-box').hidden = !(s && s.famille === 'AUTRE');
+  };
+  $('f').onsubmit = function (e) {
+    e.preventDefault();
+    var d = {}; new FormData(this).forEach(function (v, k) { d[k] = v; });
+    if (st.mode === 'photo') { d.photo = st.photo; if (!d.photo) { $('ferr').innerHTML = errBox('Zidi tswira dyal reçu (wla khtari Message).'); return; } }
+    else { d.recuMessage = $('c-msg').value; if (!d.recuMessage.trim()) { $('ferr').innerHTML = errBox('Ktbi message dyal reçu.'); return; } }
+    $('send').disabled = true; $('send').textContent = 'Kaytsjel…';
+    call('submitCommande', S.token, d).then(function (r) { successScreen('Bravo! Commande tsjlat b naja7', r.resume, '+ Commande khra'); })
+      .catch(function (err) { $('send').disabled = false; $('send').textContent = 'Enregistrer la commande'; $('ferr').innerHTML = errBox(err); });
+  };
+}
+
+/* ---------------- SALER: RESTE ---------------- */
+function vReste() {
+  show('<div class="panel">Kaytcharga…</div>');
+  call('getSalerData', S.token, S.mois).then(function (d) {
+    var st = { mode: 'photo', photo: null };
+    if (!d.restesOuverts.length) return show('<h1>Reste</h1><div class="panel">7ta reste ma b9a 3la clients dyalek. 👏</div>');
+    show('<h1>Client khelles reste</h1><form class="panel form" id="f">' +
+      '<label class="full">Commande<select name="commandeId" required>' + d.restesOuverts.map(function (x) {
+        return '<option value="' + esc(x.id) + '">' + esc(x.client) + ' · ' + esc(x.date) + ' · ba9i ' + n0(x.reste) + ' DH</option>'; }).join('') + '</select></label>' +
+      '<label>Montant<input name="montant" type="number" min="1" inputmode="numeric" required></label>' +
+      '<label>Banque<select name="banque">' + opt(S.refs.banques) + '</select></label>' +
+      recuBlock('r') + '<div class="full" id="ferr"></div><button class="pri big full" type="submit" id="send">Enregistrer</button></form>');
+    bindRecu('r', st);
+    $('f').onsubmit = function (e) {
+      e.preventDefault();
+      var x = {}; new FormData(this).forEach(function (v, k) { x[k] = v; });
+      if (st.mode === 'photo') { x.photo = st.photo; if (!x.photo) { $('ferr').innerHTML = errBox('Zidi tswira dyal reçu.'); return; } }
+      else { x.recuMessage = $('r-msg').value; if (!x.recuMessage.trim()) { $('ferr').innerHTML = errBox('Ktbi message.'); return; } }
+      $('send').disabled = true;
+      call('submitReste', S.token, x).then(function (r) { successScreen('Bravo! Reste tsjel', r.resume, 'Reste akhor'); })
+        .catch(function (err) { $('send').disabled = false; $('ferr').innerHTML = errBox(err); });
+    };
+  }).catch(function (e) { show(errBox(e)); });
+}
+
+/* ---------------- SALER: HOME ---------------- */
+function statutPill(s) { return '<span class="pill ' + (s === 'Vérifié' ? 'ok' : s === 'Annulé' ? 'no' : 'wait') + '">' + esc(s) + '</span>'; }
+function orderCard(c) {
+  return '<div class="oc"><div class="top"><b>' + esc(c.client) + '</b>' + statutPill(c.statut) + '</div>' +
+    '<div class="meta">' + esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7)) + (c.service ? ' · ' + esc(c.service) : '') + (c.tel ? ' · ' + esc(c.tel) : '') + '</div>' +
+    '<div class="nums"><span>Prix <b>' + n0(c.prix) + '</b></span><span>Avance <b>' + n0(c.avance) + '</b></span>' +
+    (c.reste > 0 ? '<span class="neg">Reste <b>' + n0(c.reste) + '</b></span>' : '') + '<span>Commission <b>' + n0(c.commission) + '</b></span></div></div>';
+}
+function vHome() {
+  show('<div class="panel">Kaytcharga…</div>');
+  call('getSalerData', S.token, S.mois).then(function (d) {
+    var cac = d.nValides && d.ads ? d.ads / d.nValides : 0;
+    show('<div class="row" style="justify-content:space-between"><h1>' + esc(moisLabel(d.mois)) + '</h1>' + moisPicker() + '</div>' +
+      '<div class="kpis">' +
+      '<div class="kpi hero"><div class="l">Commission dyal chhar</div><div class="v">' + dh(d.commission) + '</div><div class="l">Vérifiée ' + dh(d.commissionValidee) + (d.commissionPayee ? ' · Tkhelsat ' + dh(d.commissionPayee) : '') + '</div></div>' +
+      '<div class="kpi"><div class="l">Commandes</div><div class="v">' + d.nCmd + '</div><div class="l">CA ' + dh(d.ca) + '</div></div>' +
+      '<div class="kpi"><div class="l">Ads li tsrfo 3lik</div><div class="v">' + dh(d.ads) + '</div><div class="l">' + (cac ? 'Kol commande katkam ' + dh(cac) : '—') + '</div></div>' +
+      '</div>' +
+      '<div class="panel"><h2>Commandes dyali (' + d.commandes.length + ')</h2>' +
+      (d.commandes.length ? d.commandes.map(orderCard).join('') : '<p class="muted">7ta commande had chhar.</p>') + '</div>' +
+      dailyPanel(null) +
+      '<div class="panel"><h2>Kol chhar</h2><div class="tbox"><table><thead><tr><th>Chhar</th><th class="n">Cmd</th><th class="n">CA</th><th class="n">Commission</th></tr></thead><tbody>' +
+      d.months.map(function (m) { return '<tr class="click" data-m="' + m.mois + '"><td>' + esc(moisLabel(m.mois)) + '</td><td class="n">' + m.n + '</td><td class="n">' + n0(m.ca) + '</td><td class="n"><b>' + n0(m.com) + '</b></td></tr>'; }).join('') +
+      '</tbody></table></div><p class="note">Cliqui 3la chi chhar bach tchouf les commandes dyalo.</p></div>');
+    drawDaily(d.days);
+    document.querySelectorAll('tr[data-m]').forEach(function (tr) { tr.onclick = function () { S.mois = tr.dataset.m; vHome(); }; });
+    bindMois(vHome);
+  }).catch(function (e) { show(errBox(e)); });
+}
+
+/* ---------------- ADMIN ---------------- */
+function loadAdmin(fn) {
+  show('<div class="panel">Kaytcharga…</div>');
+  call('getAdminData', S.token, S.mois).then(function (d) { S.data = d; fn(d); bindMois(function () { loadAdmin(fn); }); })
+    .catch(function (e) { show(errBox(e)); });
+}
+function plRow(l, v, ca, cls) { return '<tr class="' + (cls || '') + '"><td>' + l + '</td><td class="n ' + (v < 0 ? 'neg' : '') + '">' + dh(v) + '</td><td class="n muted small">' + (ca ? pct(v / ca) : '') + '</td></tr>'; }
+S.dtab = 'resume';
+function li(l, v, sub, cls) { return '<div class="li ' + (cls || '') + '"><span>' + l + (sub ? '<small>' + sub + '</small>' : '') + '</span><b class="' + (v < 0 ? 'neg' : '') + '">' + dh(v) + '</b></div>'; }
+function vDash() {
+  loadAdmin(function (d) {
+    var m = d.m;
+    var kCmd = m.adsCli + m.video + m.mb + m.com + m.adsT + m.business;
+    var kPerso = m.mzP + m.famP + m.epP + m.perso + m.talk + m.soc;
+    var isCur = m.mois === new Date().toISOString().slice(0, 7), dim = new Date(+m.mois.slice(0, 4), +m.mois.slice(5, 7), 0).getDate();
+    var proj = isCur ? m.net / Math.max(1, new Date().getDate()) * dim : m.net;
+    var restes = d.restesOuverts.reduce(function (t, x) { return t + x.reste; }, 0), dettes = d.dettes.reduce(function (t, x) { return t + x.ba9i; }, 0);
+    var tabs = [['resume', 'Résumé'], ['dkhel', 'Li dkhel'], ['khrej', 'Li khrej'], ['salers', 'Salers'], ['jour', 'Kol nhar']];
+    show('<div class="row" style="justify-content:space-between"><h1>' + esc(moisLabel(m.mois)) + '</h1>' + moisPicker() + '</div>' +
+      (d.aVerifier.length ? '<div class="alert"><span>' + d.aVerifier.length + ' katsna vérification</span><button class="sm pri" id="gov">Chouf →</button></div>' : '') +
+      '<div class="big3"><div class="kpi in"><div class="l">Li dkhel (CA)</div><div class="v">' + dh(m.ca) + '</div><div class="l">' + m.nCmd + ' commandes</div></div>' +
+      '<div class="kpi out"><div class="l">Li khrej (charges)</div><div class="v">' + dh(kCmd) + '</div><div class="l">' + pct(kCmd / (m.ca || 1)) + ' mn CA</div></div>' +
+      '<div class="kpi hero"><div class="l">NET</div><div class="v ' + (m.net < 0 ? 'neg' : '') + '">' + dh(m.net) + '</div><div class="l">' + (isCur ? 'Projection ' + dh(proj) : 'Objectif ' + pct(m.net / (d.objectif || 1))) + '</div></div></div>' +
+      chips('dt', tabs, S.dtab) + '<div id="dtc"></div>');
+    var V = {
+      resume: function () {
+        return '<div class="panel"><h2>Mn NET fin mchat</h2>' + li('NET', m.net, 'Li dkhel – li khrej', 'sub') +
+          li('Mzkia', m.mzP, 'Due ' + dh(m.mzDue)) + li('FAM9 (dar)', m.famP, 'Due ' + dh(m.famDue)) + li('Épargne', m.epP, 'Due ' + dh(m.epDue)) +
+          li('Perso', m.perso) + li('Talkify', m.talk) + li('Création société', m.soc) +
+          li('Ba9i f yeddek', m.net - kPerso, '', 'tot') + '</div>' +
+          '<div class="panel"><h2>Flous li mazal</h2>' + li('Restes 3and clients', restes, d.restesOuverts.length + ' commandes') + li('Dettes', dettes, d.dettes.map(function (x) { return esc(x.nom); }).join(' · ')) + '</div>' +
+          (m.hist ? '<p class="note">Had chhar fih data dyal sheet « Timedia Global dashboard » + l\'application.</p>' : '');
+      },
+      dkhel: function () {
+        var sal = m.salers.filter(function (s) { return s.ca; });
+        return '<div class="panel"><h2>Li dkhel</h2>' + li('CA (prix dyal les commandes)', m.ca, m.nCmd + ' commandes · ticket moyen ' + dh(m.nCmd ? m.ca / m.nCmd : 0), 'tot') +
+          '<div class="grp">Par saler</div>' + sal.map(function (s) { return li(esc(s.n), s.ca, s.cmd + ' commandes'); }).join('') + '</div>' +
+          (d.restesOuverts.length ? '<div class="panel"><h2>Restes li mazal ma dkhlouch</h2>' + d.restesOuverts.map(function (x) { return li(esc(x.client), x.reste, esc(x.saler)); }).join('') + '</div>' : '') +
+          '<div class="panel"><h2>Commandes dyal l\'application</h2>' + (d.commandes.length ? d.commandes.map(function (c) { return orderCard({ client: c.client + ' · ' + c.saler, statut: c.statut, date: c.date, service: c.service, prix: c.prix, avance: c.avance, reste: c.prix - c.avance, commission: c.commission }); }).join('') : '<p class="muted">Mazal 7ta commande f l\'application had chhar.</p>') + '</div>';
+      },
+      khrej: function () {
+        return '<div class="panel"><h2>Charges dyal lkhedma</h2>' +
+          li('Budget ads clients', m.adsCli, 'kaymchi l Meta') + li('Coût vidéo', m.video) + li('Media buyer', m.mb) + li('Commissions salers', m.com) +
+          li('Ads Timedia', m.adsT, 'ads dyal confirmation') + li('Charges business', m.business) + li('Total charges', kCmd, '', 'tot') + '</div>' +
+          '<div class="panel"><h2>Sorties mn NET</h2>' + li('Mzkia', m.mzP) + li('FAM9 (dar)', m.famP) + li('Épargne', m.epP) + li('Perso', m.perso) + li('Talkify', m.talk) + li('Création société', m.soc) +
+          li('Total sorties', kPerso, '', 'tot') + '</div>' +
+          (d.sorties.length ? '<div class="panel"><h2>Tafasil dyal sorties (application)</h2>' + d.sorties.map(function (x) { return li(esc(x.cat) + (x.raison ? ' · ' + esc(x.raison) : ''), x.montant, esc(x.date)); }).join('') + '</div>' : '');
+      },
+      salers: function () {
+        return '<div class="panel"><h2>Salers</h2><div class="tbox"><table><thead><tr><th>Saler</th><th class="n">Cmd</th><th class="n">CA</th><th class="n">Ads</th><th class="n">ROAS</th><th class="n">Coût/cmd</th><th class="n">Comm.</th></tr></thead><tbody>' +
+          m.salers.map(function (s) { var r = s.ads ? s.ca / s.ads : 0; return '<tr><td>' + esc(s.n) + '</td><td class="n">' + s.cmd + '</td><td class="n">' + n0(s.ca) + '</td><td class="n">' + n0(s.ads) + '</td><td class="n">' + (s.ads ? '<span class="pill ' + (r < 3 ? 'no' : 'ok') + '">' + r.toFixed(1) + 'x</span>' : '–') + '</td><td class="n">' + (s.cmd ? n0(s.ads / s.cmd) : '–') + '</td><td class="n">' + n0(s.com) + '</td></tr>'; }).join('') +
+          '</tbody></table></div></div>';
+      },
+      jour: function () { return dailyPanel(salerNames(d.days)); }
+    };
+    var render = function () { $('dtc').innerHTML = V[S.dtab](); if (S.dtab === 'jour') drawDaily(d.days); };
+    bindChips('dt', function (k) { S.dtab = k; render(); });
+    if ($('gov')) $('gov').onclick = function () { go('verif'); };
+    render();
+  });
+}
+function vVerif() {
+  loadAdmin(function (d) {
+    show('<h1>À vérifier</h1><p class="note">Chouf compte. Mli lflous wslat, cliqui Vérifié. Ghir li vérifiées kayt7sbou.</p>' +
+      (d.aVerifier.length ? d.aVerifier.map(function (x) {
+        return '<div class="card"><div class="row" style="justify-content:space-between"><b>' + esc(x.client) + '</b><span class="pill wait">' + esc(x.type) + '</span></div>' +
+          '<div class="small muted">' + esc(x.date) + ' · ' + esc(x.saler) + ' · ' + esc(x.service) + ' · ' + esc(x.banque) + '</div>' +
+          '<div>' + (x.type === 'commande' ? 'Prix ' + dh(x.montant) + ' · Avance <b>' + dh(x.avance) + '</b>' : 'Montant <b>' + dh(x.montant) + '</b>') + '</div>' +
+          (x.photo ? '<a href="' + esc(x.photo) + '" target="_blank" rel="noopener">📷 Chouf reçu</a>' : '') + (x.message ? '<div class="resume">' + esc(x.message) + '</div>' : '') +
+          '<div class="row"><button class="pri sm" data-st="Vérifié" data-t="' + x.type + '" data-id="' + esc(x.id) + '">✓ Vérifié</button><button class="sm" data-st="Annulé" data-t="' + x.type + '" data-id="' + esc(x.id) + '">Annuler</button></div></div>';
+      }).join('') : '<div class="panel">Kolchi vérifié. 👌</div>'));
+    document.querySelectorAll('[data-st]').forEach(function (b) {
+      b.onclick = function () { b.disabled = true; call('setStatut', S.token, b.dataset.t, b.dataset.id, b.dataset.st).then(vVerif).catch(function (e) { alert(e.message); b.disabled = false; }); };
+    });
+  });
+}
+function vCmds() {
+  loadAdmin(function (d) {
+    show('<div class="row" style="justify-content:space-between"><h1>Commandes · ' + esc(moisLabel(S.mois)) + '</h1>' + moisPicker() + '</div>' +
+      '<div class="panel"><div class="tbox"><table><thead><tr><th>Date</th><th>Saler</th><th>Client</th><th>Service</th><th class="n">Prix</th><th class="n">Avance</th><th class="n">Vidéo</th><th class="n">Ads</th><th class="n">MB</th><th class="n">Comm.</th><th class="n">Marge</th><th>Statut</th><th></th></tr></thead><tbody>' +
+      (d.commandes.length ? d.commandes.map(function (c) {
+        return '<tr><td>' + esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7)) + '</td><td>' + esc(c.saler) + '</td><td>' + esc(c.client) + '</td><td class="small">' + esc(c.service) + '</td><td class="n">' + n0(c.prix) + '</td><td class="n">' + n0(c.avance) + '</td><td class="n">' + n0(c.video) + '</td><td class="n">' + n0(c.ads) + '</td><td class="n">' + n0(c.mb) + '</td><td class="n">' + n0(c.commission) + '</td><td class="n ' + (c.marge < 0 ? 'neg' : '') + '">' + n0(c.marge) + '</td><td>' + statutPill(c.statut) + '</td><td>' + (c.photo ? '<a href="' + esc(c.photo) + '" target="_blank">📷</a>' : '') + '</td></tr>';
+      }).join('') : '<tr><td colspan="13" class="muted">7ta commande f l\'application had chhar.</td></tr>') +
+      '</tbody></table></div></div>' + (d.m.hist ? '<p class="note">Commandes dyal sheet (9bel l\'application) kayt7sbou f Dashboard w Année, walakin ma kaybanouch hna wa7da b wa7da.</p>' : ''));
+  });
+}
+function vAds() {
+  var sal = S.refs.salers;
+  show('<h1>Ads Timedia</h1><form class="panel form" id="f"><label class="full">Date<input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></label>' +
+    sal.map(function (n) { return '<label>' + esc(n) + ' (DH)<input type="number" min="0" inputmode="numeric" data-s="' + esc(n) + '"></label>'; }).join('') +
+    '<div class="full" id="ferr"></div><button class="pri big full" id="send">Sjel ads</button></form><p class="note">Ch7al srfti f ads dyal kol saler f had nhar.</p>');
+  $('f').onsubmit = function (e) {
+    e.preventDefault(); var m = {};
+    document.querySelectorAll('[data-s]').forEach(function (i) { if (i.value) m[i.dataset.s] = i.value; });
+    $('send').disabled = true;
+    call('addAds', S.token, this.date.value, m).then(function () { $('send').disabled = false; $('ferr').innerHTML = '<div class="pill ok">Tsjel ✓</div>'; document.querySelectorAll('[data-s]').forEach(function (i) { i.value = ''; }); })
+      .catch(function (err) { $('send').disabled = false; $('ferr').innerHTML = errBox(err); });
+  };
+}
+function vSorties() {
+  loadAdmin(function (d) {
+    show('<h1>Sorties</h1><form class="panel form" id="f">' +
+      '<label>Montant<input name="montant" type="number" min="1" inputmode="numeric" required></label>' +
+      '<label>Catégorie<select name="cat">' + opt(S.refs.cats) + '</select></label>' +
+      '<label class="full">Raison<input name="raison"></label>' +
+      '<label>Mn compte<select name="compte">' + opt(S.refs.banques) + '</select></label>' +
+      '<label>Date<input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></label>' +
+      '<label>Saler (ila commission)<select name="saler">' + opt(S.refs.salers, '—') + '</select></label>' +
+      '<label>Dette<select name="dette">' + opt(S.refs.dettes, '—') + '</select></label>' +
+      '<div class="full" id="ferr"></div><button class="pri big full" id="send">Sjel</button></form>' +
+      '<div class="panel"><div class="row" style="justify-content:space-between"><h2>Had chhar</h2>' + moisPicker() + '</div><div class="tbox"><table><thead><tr><th>Date</th><th>Catégorie</th><th>Raison</th><th class="n">Montant</th></tr></thead><tbody>' +
+      (d.sorties.length ? d.sorties.map(function (s) { return '<tr><td>' + esc(s.date) + '</td><td>' + esc(s.cat) + '</td><td>' + esc(s.raison) + '</td><td class="n">' + n0(s.montant) + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="muted">Walou.</td></tr>') +
+      '</tbody></table></div></div>');
+    $('f').onsubmit = function (e) {
+      e.preventDefault(); var x = {}; new FormData(this).forEach(function (v, k) { x[k] = v; });
+      $('send').disabled = true; call('addSortie', S.token, x).then(vSorties).catch(function (err) { $('send').disabled = false; $('ferr').innerHTML = errBox(err); });
+    };
+  });
+}
+function vAnnee() {
+  loadAdmin(function (d) {
+    var ms = d.months, Y = S.mois.slice(0, 4);
+    var tot = function (k) { return ms.reduce(function (t, m) { return t + (m[k] || 0); }, 0); };
+    var short = function (M) { return moisLabel(M).slice(0, 4); };
+    var lines = [['CA', 'ca', 'sub'], ['– Ads clients', 'adsCli'], ['CA réel', 'caReel', 'sub'], ['– Vidéo', 'video'], ['– Media buyer', 'mb'], ['– Commissions', 'com'], ['– Ads Timedia', 'adsT'], ['– Business', 'business'], ['NET', 'net', 'tot'],
+      ['Mzkia payée', 'mzP'], ['FAM9 payée', 'famP'], ['Pure', 'pure', 'sub'], ['– Perso', 'perso'], ['– Talkify', 'talk'], ['– Société', 'soc'], ['Ba9i mn pure', 'ba9iPure', 'tot'], ['Commandes', 'nCmd']];
+    var names = []; ms.forEach(function (m) { m.salers.forEach(function (s) { if (names.indexOf(s.n) < 0 && (s.ca || s.ads)) names.push(s.n); }); });
+    var sv = function (m, n, k) { var s = m.salers.filter(function (x) { return x.n === n; })[0]; return s ? s[k] : 0; };
+    show('<div class="row" style="justify-content:space-between"><h1>Année ' + Y + '</h1>' + moisPicker() + '</div>' +
+      '<div class="kpis"><div class="kpi hero"><div class="l">NET ' + Y + '</div><div class="v">' + dh(tot('net')) + '</div><div class="l">Moyenne ' + dh(tot('net') / Math.max(1, ms.length)) + '/mois</div></div>' +
+      '<div class="kpi"><div class="l">CA</div><div class="v">' + dh(tot('ca')) + '</div></div><div class="kpi"><div class="l">Commandes</div><div class="v">' + n0(tot('nCmd')) + '</div></div></div>' +
+      monthPanel(names) +
+      '<div class="panel"><h2>Par mois</h2><div class="tbox"><table><thead><tr><th></th>' + ms.map(function (m) { return '<th class="n">' + short(m.mois) + '</th>'; }).join('') + '<th class="n">Total</th></tr></thead><tbody>' +
+      lines.map(function (l) { return '<tr class="' + (l[2] || '') + '"><td>' + l[0] + '</td>' + ms.map(function (m) { return '<td class="n ' + (m[l[1]] < 0 ? 'neg' : '') + '">' + n0(m[l[1]]) + '</td>'; }).join('') + '<td class="n"><b>' + n0(tot(l[1])) + '</b></td></tr>'; }).join('') +
+      '</tbody></table></div></div>' +
+      '<div class="panel"><h2>Commandes par saler</h2><div class="tbox"><table><thead><tr><th>Saler</th>' + ms.map(function (m) { return '<th class="n">' + short(m.mois) + '</th>'; }).join('') + '<th class="n">Total</th></tr></thead><tbody>' +
+      names.map(function (n) { return '<tr><td>' + esc(n) + '</td>' + ms.map(function (m) { return '<td class="n">' + (sv(m, n, 'cmd') || '') + '</td>'; }).join('') + '<td class="n"><b>' + ms.reduce(function (t, m) { return t + sv(m, n, 'cmd'); }, 0) + '</b></td></tr>'; }).join('') + '</tbody></table></div></div>' +
+      '<div class="panel"><h2>CA · Ads · ROAS par saler</h2><div class="tbox"><table><thead><tr><th>Saler</th><th class="n">CA</th><th class="n">Ads</th><th class="n">ROAS</th><th class="n">Commission</th></tr></thead><tbody>' +
+      names.map(function (n) { var ca = ms.reduce(function (t, m) { return t + sv(m, n, 'ca'); }, 0), ad = ms.reduce(function (t, m) { return t + sv(m, n, 'ads'); }, 0), co = ms.reduce(function (t, m) { return t + sv(m, n, 'com'); }, 0);
+        return '<tr><td>' + esc(n) + '</td><td class="n">' + n0(ca) + '</td><td class="n">' + n0(ad) + '</td><td class="n">' + (ad ? '<span class="pill ' + (ca / ad < 3 ? 'no' : 'ok') + '">' + (ca / ad).toFixed(1) + 'x</span>' : '–') + '</td><td class="n">' + n0(co) + '</td></tr>'; }).join('') +
+      '</tbody></table></div></div>');
+    drawMonths(ms);
+  });
+}
+function vSalers() {
+  show('<h1>Salers</h1><form class="panel form" id="f"><label>Smiya<input name="nom" required></label><label>Nmra WhatsApp<input name="tel" inputmode="tel" required></label>' +
+    '<label class="full">Email Gmail (bach tchouf sheet dyalha)<input name="email" type="email"></label><div class="full" id="ferr"></div>' +
+    '<button class="pri big full" id="send">Zid saler</button></form><p class="note">Code dyal login kaytl3 hna w f onglet « Accès » f Google Sheet.</p>');
+  $('f').onsubmit = function (e) {
+    e.preventDefault(); var f = this; $('send').disabled = true;
+    call('addSaler', S.token, f.nom.value, f.tel.value, f.email.value).then(function (r) {
+      $('ferr').innerHTML = '<div class="resume">✅ ' + esc(f.nom.value) + ' tzadet.\nNmra: ' + esc(f.tel.value) + '\nCode: ' + esc(r.code) + '</div>';
+      $('send').disabled = false; S.refs.salers.push(f.nom.value); f.reset();
+    }).catch(function (err) { $('send').disabled = false; $('ferr').innerHTML = errBox(err); });
+  };
+}
+
+/* ---------------- GRAPHIQUES ---------------- */
+var DM = [['ca', 'CA'], ['cmd', 'Commandes'], ['enc', 'Encaissé'], ['ads', 'Ads'], ['marge', 'Marge']];
+var DMS = [['ca', 'CA'], ['cmd', 'Commandes'], ['com', 'Commission'], ['ads', 'Ads']];
+var MM = [['ca', 'CA'], ['net', 'NET'], ['cmd', 'Commandes'], ['ads', 'Ads Timedia'], ['com', 'Commissions']];
+S.dm = 'ca'; S.ds = ''; S.mm = 'ca'; S.msal = '';
+function sumDay(day, who) {
+  var t = [0, 0, 0, 0, 0];
+  Object.keys(day.s).forEach(function (n) { if (who && n !== who) return; for (var i = 0; i < 5; i++) t[i] += day.s[n][i]; });
+  return { ca: t[0], cmd: t[1], ads: t[2], enc: t[3], com: t[4], marge: t[0] - t[4] - t[2] };
+}
+function salerNames(days) {
+  var o = {}; days.forEach(function (d) { Object.keys(d.s).forEach(function (n) { o[n] = (o[n] || 0) + d.s[n][0] + d.s[n][2]; }); });
+  return Object.keys(o).filter(function (n) { return o[n] > 0; }).sort(function (a, b) { return o[b] - o[a]; });
+}
+function chips(id, list, cur) { return '<div class="chips" id="' + id + '">' + list.map(function (x) { return '<button data-k="' + esc(x[0]) + '" class="' + (x[0] === cur ? 'on' : '') + '">' + esc(x[1]) + '</button>'; }).join('') + '</div>'; }
+function bindChips(id, fn) { var c = $(id); if (!c) return; Array.prototype.forEach.call(c.children, function (b) { b.onclick = function () { Array.prototype.forEach.call(c.children, function (x) { x.classList.toggle('on', x === b); }); fn(b.dataset.k); }; }); }
+function barsHTML(vals, labels, every) {
+  var max = Math.max.apply(null, [1].concat(vals.map(Math.abs)));
+  return '<div class="chart"><div class="cbars">' + vals.map(function (v, i) {
+    return '<button data-i="' + i + '" class="' + (v < 0 ? 'negb' : v === 0 ? 'zero' : '') + '" style="height:' + Math.max(1.5, Math.abs(v) / max * 100) + '%" aria-label="' + esc(labels[i]) + '"></button>';
+  }).join('') + '</div><div class="xl">' + labels.map(function (l, i) { return '<span>' + (i % every === 0 ? esc(l) : '') + '</span>'; }).join('') + '</div></div>';
+}
+function bindBars(el, onPick) {
+  el.querySelectorAll('.cbars button').forEach(function (b) {
+    b.onclick = function () { el.querySelectorAll('.cbars button').forEach(function (x) { x.classList.toggle('sel', x === b); }); onPick(+b.dataset.i); };
+  });
+}
+function fmtK(k, v) { return k === 'cmd' ? n0(v) + ' cmd' : dh(v); }
+function dailyPanel(names) {
+  var dm = S.role === 'admin' ? DM : DMS;
+  if (!dm.some(function (x) { return x[0] === S.dm; })) S.dm = 'ca';
+  return '<div class="panel"><h2>Kol nhar</h2>' + chips('dm', dm, S.dm) +
+    (names && names.length > 1 ? chips('ds', [['', 'Kolchi']].concat(names.map(function (n) { return [n, n]; })), S.ds) : '') +
+    '<div id="dc"></div><div class="cap" id="dcap"></div><p class="note">Cliqui 3la chi nhar bach tchouf tafasil dyalo. Ghir les commandes vérifiées.</p></div>';
+}
+function drawDaily(days) {
+  if (!$('dc')) return;
+  var draw = function () {
+    var k = S.dm, who = S.ds;
+    var rows = days.map(function (d) { return sumDay(d, who); });
+    var vals = rows.map(function (r) { return r[k]; });
+    var today = new Date().toISOString().slice(0, 10);
+    var upto = days.filter(function (d) { return d.d <= today; }).length || days.length;
+    var tot = vals.reduce(function (t, v) { return t + v; }, 0), bi = 0;
+    vals.forEach(function (v, i) { if (v > vals[bi]) bi = i; });
+    $('dc').innerHTML = barsHTML(vals, days.map(function (d) { return d.d.slice(8); }), 5);
+    var summary = 'Total ' + fmtK(k, tot) + ' · Moyenne/nhar ' + fmtK(k, tot / upto) + (vals[bi] > 0 ? ' · A7san nhar ' + days[bi].d.slice(8) + ' (' + fmtK(k, vals[bi]) + ')' : '');
+    $('dcap').textContent = summary;
+    bindBars($('dc'), function (i) {
+      var r = rows[i], d = days[i].d;
+      $('dcap').innerHTML = '<b>' + d.slice(8) + '/' + d.slice(5, 7) + (who ? ' · ' + esc(who) : '') + '</b> — CA ' + dh(r.ca) + ' · ' + r.cmd + ' cmd · ' + (S.role === 'admin'
+        ? 'Encaissé ' + dh(r.enc) + ' · Ads ' + dh(r.ads) + ' · Marge <span class="' + (r.marge < 0 ? 'neg' : '') + '">' + dh(r.marge) + '</span>'
+        : 'Commission ' + dh(r.com) + ' · Ads ' + dh(r.ads));
+    });
+  };
+  bindChips('dm', function (k) { S.dm = k; draw(); });
+  bindChips('ds', function (k) { S.ds = k; draw(); });
+  if (S.ds && !$('ds')) S.ds = '';
+  draw();
+}
+function monthPanel(names) {
+  return '<div class="panel"><h2>Kol chhar</h2>' + chips('mm', MM, S.mm) + chips('msal', [['', 'Kolchi']].concat(names.map(function (n) { return [n, n]; })), S.msal) +
+    '<div id="mc"></div><div class="cap" id="mcap"></div></div>';
+}
+function drawMonths(ms) {
+  if (!$('mc')) return;
+  var val = function (m, k, who) {
+    if (!who) return k === 'ca' ? m.ca : k === 'net' ? m.net : k === 'cmd' ? m.nCmd : k === 'ads' ? m.adsT : m.com;
+    var s = m.salers.filter(function (x) { return x.n === who; })[0] || { ca: 0, cmd: 0, ads: 0, com: 0 };
+    return k === 'ca' ? s.ca : k === 'cmd' ? s.cmd : k === 'ads' ? s.ads : k === 'com' ? s.com : null;
+  };
+  var draw = function () {
+    var k = S.mm, who = S.msal;
+    if (k === 'net' && who) { $('mc').innerHTML = ''; $('mcap').textContent = 'NET kayt7seb ghir l Timedia kamla — khtar « Kolchi ».'; return; }
+    var vals = ms.map(function (m) { return val(m, k, who) || 0; }), labels = ms.map(function (m) { return moisLabel(m.mois).slice(0, 3); });
+    var tot = vals.reduce(function (t, v) { return t + v; }, 0), bi = 0;
+    vals.forEach(function (v, i) { if (v > vals[bi]) bi = i; });
+    $('mc').innerHTML = barsHTML(vals, labels, 1);
+    $('mcap').textContent = 'Total ' + fmtK(k, tot) + ' · Moyenne ' + fmtK(k, tot / Math.max(1, vals.length)) + ' · A7san chhar ' + moisLabel(ms[bi].mois) + ' (' + fmtK(k, vals[bi]) + ')';
+    bindBars($('mc'), function (i) {
+      var m = ms[i], s = who ? m.salers.filter(function (x) { return x.n === who; })[0] || {} : null;
+      $('mcap').innerHTML = '<b>' + esc(moisLabel(m.mois)) + (who ? ' · ' + esc(who) : '') + '</b> — ' + (s
+        ? 'CA ' + dh(s.ca || 0) + ' · ' + (s.cmd || 0) + ' cmd · Ads ' + dh(s.ads || 0) + ' · Commission ' + dh(s.com || 0) + (s.ads ? ' · ROAS ' + (s.ca / s.ads).toFixed(1) + 'x' : '')
+        : 'CA ' + dh(m.ca) + ' · NET ' + dh(m.net) + ' · ' + m.nCmd + ' cmd · Ads ' + dh(m.adsT) + ' · Commissions ' + dh(m.com));
+    });
+  };
+  bindChips('mm', function (k) { S.mm = k; draw(); });
+  bindChips('msal', function (k) { S.msal = k; draw(); });
+  draw();
+}
+
+/* ---------------- CLIENTS ---------------- */
+S.cf = 'all'; S.csal = ''; S.cq = ''; S.csort = 'total';
+function fd(d) { return d ? d.slice(8, 10) + '/' + d.slice(5, 7) + '/' + d.slice(2, 4) : ''; }
+// Les offres (bdelhom hna ila bghiti offres khrin)
+var OFFRES = {
+  fidele: 'بحكم أنك من الكليان المميزين ديالنا 🎁 الكوموند الجاية ديال 7 أيام إشهار ولا كثر، نزيدوك 3 أيام فابور',
+  ads: function (j) { return j >= 7 ? 'عرض خاص ليك 🎁 إلا عاودتي نفس الحملة ديال ' + j + ' أيام هاد الأسبوع، نزيدوك يومين فابور' : 'عرض خاص ليك 🎁 إلا خديتي 7 أيام ديال الإشهار هاد الأسبوع، نزيدوك يوم فابور'; },
+  video: 'عرض خاص ليك 🎁 فيديو جديد + 7 أيام ديال الإشهار، ونزيدوك Affiche فابور',
+  ghab: 'عرض الرجوع 🎁 أي كوموند هاد الأسبوع نزيدوك فيها يومين ديال الإشهار فابور'
+};
+function offreFor(c) {
+  var t = (c.dernier || '').toLowerCase(), video = /vid|hook|ugc|affiche|montage/.test(t);
+  if (c.since > 60) return OFFRES.ghab;
+  if (c.n >= 5) return OFFRES.fidele;
+  return video ? OFFRES.video : OFFRES.ads(c.lastJ || c.joursMoy || 0);
+}
+function msgOptions(c) {
+  var s = S.nom === 'Maddah' ? 'Timedia' : S.nom, nom = c.nom.split(/[\/(]/)[0].trim(), of = offreFor(c);
+  var t = (c.dernier || '').toLowerCase(), video = /vid|hook|ugc|affiche|montage/.test(t);
+  var quoi = video ? 'الفيديو اللي درنا ليك' : 'الحملة ديال الإشهار' + (c.lastJ ? ' (' + c.lastJ + ' أيام)' : '');
+  if (c.since > 60) return [
+    'السلام عليكم ' + nom + ' 👋 معاك ' + s + ' من Timedia. شحال هادي ما خدمنا مع بعض، بغيت نطمن عليك وعلى المشروع ديالك.\n' + of + '.\nواش نوجدو ليك شي حاجة؟',
+    'السلام ' + nom + ' 😊 ' + s + ' من Timedia. واش باقي خدام على المشروع ديالك؟\n' + of + '. قولي ونطلقو ليك اليوم 🚀',
+    'السلام ' + nom + '، ' + s + ' من Timedia. وحشتينا! ' + of + '. نصيفط ليك التفاصيل؟'
+  ];
+  return [
+    'السلام عليكم ' + nom + ' 👋 معاك ' + s + ' من Timedia. كيف جاك ' + quoi + '؟\n' + of + '.\nواش نوجدوها ليك اليوم؟',
+    'السلام ' + nom + '، ' + s + ' من Timedia 😊 ' + (video ? 'الفيديو الجديد كيعطي نفس جديد للصفحة ديالك وكيجيب كليان جداد.' : 'اللي كيبقاو مطلقين الإشهار بلا ما يحبسو هوما اللي كيبقاو يجيوهم Message ديما.') + '\n' + of + '. نبداو؟',
+    'السلام ' + nom + ' 👋 ' + s + ' من Timedia. ' + of + ' 🔥 العرض صالح هاد الأسبوع. نكونفيرمي ليك؟'
+  ];
+}
+function clientCard(c, isA, rank) {
+  var b = { relance: '<span class="pill no">Relance</span>', ghab: '<span class="pill wait">Ghab</span>', '9rib': '<span class="pill wait">9rib</span>', ok: '<span class="pill ok">Mzyan</span>', tsift: '<span class="pill ok">Tsift lih ✓</span>' }[c.statut];
+  var need = c.statut === 'relance' || c.statut === 'ghab' || c.statut === '9rib';
+  return '<div class="oc" data-cle="' + esc(c.saler + '|' + c.cle) + '"><div class="top"><b>' + (rank ? '<span class="muted">#' + rank + '</span> ' : '') + esc(c.nom) + '</b>' + b + '</div>' +
+    '<div class="meta">' + (c.tel ? esc(c.tel) : 'Bla nmra') + (isA ? ' · ' + esc(c.saler) : '') + (c.dernier ? ' · akhir: ' + esc(c.dernier) : '') + '</div>' +
+    '<div class="nums"><span><b>' + c.n + '</b> commande' + (c.n > 1 ? 's' : '') + '</span><span>Total <b>' + n0(c.total) + '</b> DH</span><span>Moyenne <b>' + n0(c.moy) + '</b> DH</span>' + (c.joursMoy ? '<span><b>' + c.joursMoy + '</b> jours ads</span>' : '') + '</div>' +
+    (isA && c.profit !== undefined ? '<div class="nums"><span>Profit net <b class="' + (c.profit < 0 ? 'neg' : '') + '">' + (c.estime ? '≈ ' : '') + n0(c.profit) + ' DH</b></span><span class="muted">' + pct(c.profit / (c.total || 1)) + ' mn CA</span></div>' : '') +
+    '<div class="meta">Mn ' + fd(c.first) + ' · Akhir commande ' + fd(c.last) + ' (' + c.since + ' jours)' + (c.gap ? ' · kay3awd kol ~' + c.gap + ' jours' : '') + '</div>' +
+    (c.statut === 'relance' ? '<div class="relance">⏰ Khasso relance daba (kan khasso y3awd ' + fd(c.next) + ')</div>' : c.statut === 'ghab' ? '<div class="relance">Ghab ' + c.since + ' jours — dir lih relance</div>' : c.statut === '9rib' ? '<div class="meta">Relance mn ' + fd(c.next) + '</div>' : c.statut === 'tsift' ? '<div class="meta">✓ Relance tdart ' + fd(c.relance) + '</div>' : '') +
+    (!isA && need ? '<details class="msg"><summary>💬 Relance b offre — khtari message</summary><div class="opts">' +
+      msgOptions(c).map(function (m, i) { return '<div class="opt' + (i ? '' : ' on') + '" dir="rtl" data-i="' + i + '">' + esc(m) + '</div>'; }).join('') + '</div>' +
+      '<div class="act">' + (c.tel ? '<a class="wa" data-act="wa" href="#">📲 Sifto f WhatsApp</a>' + '<a href="tel:' + esc(c.tel) + '" data-act="call">Appel</a>' : '') + '<a href="#" data-act="done">✓ Dert relance</a></div></details>' : '') +
+    (isA && need && c.tel ? '<div class="act"><a class="wa" href="https://wa.me/212' + c.tel.slice(1) + '" target="_blank" rel="noopener">WhatsApp</a></div>' : '') + '</div>';
+}
+function topBars(L, key, lab) {
+  var T = L.slice(0, 10), max = Math.max.apply(null, [1].concat(T.map(function (c) { return Math.abs(c[key]); })));
+  return '<div class="panel"><h2>Top 10 · ' + lab + '</h2>' + T.map(function (c, i) {
+    return '<div class="hb"><div class="hl"><span>' + (i + 1) + '. ' + esc(c.nom) + '</span><b>' + (key === 'n' ? c.n + ' cmd' : n0(c[key]) + ' DH') + '</b></div><div class="ht"><div style="width:' + Math.max(2, Math.abs(c[key]) / max * 100) + '%"></div></div></div>';
+  }).join('') + '</div>';
+}
+function vClients() {
+  show('<div class="panel">Kaytcharga…</div>');
+  call('getClients', S.token).then(function (r) {
+    var isA = S.role === 'admin', all = r.clients;
+    var salers = []; all.forEach(function (c) { if (salers.indexOf(c.saler) < 0) salers.push(c.saler); });
+    var sorts = [['total', 'Ktar flous → a9al'], ['n', 'Ktar commandes']].concat(isA ? [['profit', 'Ktar profit → a9al'], ['profitAsc', 'A9al profit']] : []);
+    if (!sorts.some(function (x) { return x[0] === S.csort; })) S.csort = 'total';
+    var draw = function () {
+      var C = all.filter(function (c) { return !S.csal || c.saler === S.csal; });
+      var rep = C.filter(function (c) { return c.n >= 2; }), one = C.filter(function (c) { return c.n === 1; });
+      var rel = rep.filter(function (c) { return c.statut === 'relance' || c.statut === 'ghab'; }).sort(function (a, b) {
+        var x = a.statut === 'relance' ? 0 : 1, y = b.statut === 'relance' ? 0 : 1; return x - y || (x ? b.n - a.n : a.retard - b.retard); });
+      var tsift = C.filter(function (c) { return c.statut === 'tsift'; });
+      var tot = C.reduce(function (t, c) { return t + c.total; }, 0), totRep = rep.reduce(function (t, c) { return t + c.total; }, 0);
+      var srt = function (L) {
+        var k = S.csort;
+        return L.slice().sort(function (a, b) { return k === 'n' ? b.n - a.n || b.total - a.total : k === 'total' ? b.total - a.total : k === 'profit' ? (b.profit || 0) - (a.profit || 0) : (a.profit || 0) - (b.profit || 0); });
+      };
+      var lists = { relance: rel, tsift: srt(tsift), rep: srt(rep), one: srt(one), all: srt(C) };
+      var q = S.cq.toLowerCase(), L = lists[S.cf].filter(function (c) { return !q || (c.nom + ' ' + c.tel).toLowerCase().indexOf(q) >= 0; });
+      var key = S.csort === 'profitAsc' ? 'profit' : S.csort, ranked = srt(C);
+      var prof = isA ? C.reduce(function (t, c) { return t + (c.profit || 0); }, 0) : 0;
+      $('cl').innerHTML =
+        '<div class="kpis"><div class="kpi hero"><div class="l">Khass relance</div><div class="v">' + rel.length + '</div><div class="l">' + tsift.length + ' tsift lihom had simana</div></div>' +
+        '<div class="kpi"><div class="l">Kay3awdo ychriw</div><div class="v">' + rep.length + '</div><div class="l">' + pct(rep.length / (C.length || 1)) + ' mn ' + C.length + ' clients</div></div>' +
+        '<div class="kpi"><div class="l">CA mn li kay3awdo</div><div class="v">' + pct(totRep / (tot || 1)) + '</div><div class="l">' + dh(totRep) + ' mn ' + dh(tot) + '</div></div>' +
+        (isA ? '<div class="kpi"><div class="l">Profit net (kol clients)</div><div class="v">' + dh(prof) + '</div><div class="l">≈ = m7soub b moyenne</div></div>' : '') + '</div>' +
+        (isA && !S.csal ? '<div class="panel"><h2>Par saler</h2><div class="tbox"><table><thead><tr><th>Saler</th><th class="n">Clients</th><th class="n">Kay3awdo</th><th class="n">%</th><th class="n">Relance</th><th class="n">Profit</th></tr></thead><tbody>' +
+          salers.map(function (s) { var a = all.filter(function (c) { return c.saler === s; }), p = a.filter(function (c) { return c.n >= 2; }), rl = p.filter(function (c) { return c.statut === 'relance' || c.statut === 'ghab'; });
+            return '<tr><td>' + esc(s) + '</td><td class="n">' + a.length + '</td><td class="n">' + p.length + '</td><td class="n">' + pct(p.length / (a.length || 1)) + '</td><td class="n">' + rl.length + '</td><td class="n">' + n0(a.reduce(function (t, c) { return t + (c.profit || 0); }, 0)) + '</td></tr>'; }).join('') + '</tbody></table></div></div>' : '') +
+        '<div class="grp">Tertib</div>' + chips('cs', sorts, S.csort) +
+        topBars(ranked, key, { n: 'Ktar commandes', total: 'Ktar flous khllsou (DH)', profit: S.csort === 'profitAsc' ? 'A9al profit' : 'Ktar profit rb7ti' }[key]) +
+        chips('cf', [['all', 'Tertib dyal kolhom (' + C.length + ')'], ['relance', 'Khass relance (' + rel.length + ')'], ['tsift', 'Tsift lihom (' + tsift.length + ')'], ['rep', 'Kay3awdo (' + rep.length + ')'], ['one', 'Mra wa7da (' + one.length + ')']], S.cf) +
+        '<input id="cq" placeholder="9alleb b smiya wla nmra…" value="' + esc(S.cq) + '">' +
+        '<div style="display:grid;gap:10px" id="clist">' + (L.length ? L.slice(0, S.climit || 60).map(function (c, i) { return clientCard(c, isA, S.cf === 'relance' ? 0 : i + 1); }).join('') : '<p class="muted">Walou.</p>') + '</div>' +
+        (L.length > (S.climit || 60) ? '<button id="more">Chouf ktar (' + (L.length - (S.climit || 60)) + ')</button>' : '');
+      bindChips('cf', function (k) { S.cf = k; S.climit = 60; draw(); });
+      bindChips('cs', function (k) { S.csort = k; draw(); });
+      $('cq').oninput = function () { S.cq = this.value; clearTimeout(S.cqt); S.cqt = setTimeout(function () { draw(); var i = $('cq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
+      if ($('more')) $('more').onclick = function () { S.climit = (S.climit || 60) + 60; draw(); };
+      $('clist').querySelectorAll('.opt').forEach(function (o) {
+        o.onclick = function () { o.parentNode.querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === o); }); };
+      });
+      $('clist').querySelectorAll('[data-act]').forEach(function (a) {
+        a.onclick = function (e) {
+          var card = a.closest('.oc'), id = card.dataset.cle, c = all.filter(function (x) { return x.saler + '|' + x.cle === id; })[0], box = card.querySelector('.opt.on');
+          var act = a.dataset.act;
+          if (act === 'wa') { e.preventDefault(); window.open('https://wa.me/212' + c.tel.slice(1) + '?text=' + encodeURIComponent(box.textContent), '_blank'); }
+          if (act === 'done') e.preventDefault();
+          call('markRelance', S.token, c.cle, c.nom, c.tel, act).then(function (x) { c.statut = 'tsift'; c.relance = x.date; draw(); }).catch(function (err) { alert(err.message); });
+        };
+      });
+    };
+    show('<h1>Clients</h1>' + (isA && salers.length > 1 ? chips('csal', [['', 'Kolchi']].concat(salers.map(function (s) { return [s, s]; })), S.csal) : '') +
+      '<p class="note">« Relance » = client kay3awd ychri w daz l w9t li 3adatan kay3awd fih. « Ghab » = ktar mn 90 jours bla commande. Mli tsifti message, cliqui « Sifto f WhatsApp » wla « Dert relance » bach ytsjel.</p><div id="cl" style="display:grid;gap:14px"></div>');
+    bindChips('csal', function (k) { S.csal = k; draw(); });
+    draw();
+  }).catch(function (e) { show(errBox(e)); });
+}
+
+/* ---------------- NOTIFICATIONS ---------------- */
+function setBadge(n) { var b = $('badge'); if (!b) return; b.hidden = !n; b.textContent = n > 9 ? '9+' : n; }
+function refreshBadge() { if (!S.token || document.hidden) return; call('getNotifs', S.token, false).then(function (r) { setBadge(r.unread); }).catch(function () {}); }
+document.addEventListener('visibilitychange', refreshBadge);
+function vNotifs() {
+  Array.prototype.forEach.call($('nav').children, function (b) { b.classList.remove('on'); });
+  show('<div class="panel">Kaytcharga…</div>');
+  call('getNotifs', S.token, true).then(function (r) {
+    show('<h1>Notifications</h1>' +
+      (r.items.length ? r.items.map(function (x) {
+        return '<div class="card nitem' + (x.lu ? '' : ' new') + '"><div class="row" style="justify-content:space-between"><span class="t">' + esc(x.titre) + '</span><span class="small muted">' + esc(x.date) + '</span></div><div>' + esc(x.msg) + '</div></div>';
+      }).join('') : '<div class="panel muted">Mazal 7ta notification.</div>') +
+      '<div class="panel"><h2>📲 Notifications f tilifon (fabor)</h2>' +
+      '<p>Kol 7aja mohimma katjik 7ta f <b>Gmail</b>: <b>' + esc(r.email || '—') + '</b>. Gmail kay3tik notification f tilifon direct.</p>' +
+      '<ol class="steps"><li>T2kd(i) bli l\'application <b>Gmail</b> fiha had compte f tilifon.</li><li>F Gmail → Paramètres → had compte → <b>Notifications: Tout</b>.</li></ol>' +
+      '<button id="tst">🔔 Jarreb daba</button><div id="tsr"></div></div>');
+    $('tst').onclick = function () {
+      var b = this; b.disabled = true;
+      call('testPush', S.token).then(function () { b.disabled = false; $('tsr').innerHTML = '<p class="pill ok">Tsiftat ✓ — chouf Gmail f tilifonek</p>'; })
+        .catch(function (e) { b.disabled = false; $('tsr').innerHTML = errBox(e); });
+    };
+    if (r.unread) call('markNotifsRead', S.token).then(function () { setBadge(0); }).catch(function () {});
+  }).catch(function (e) { show(errBox(e)); });
+}
+
+start();
+</script>
+</body>
+</html>
