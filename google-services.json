@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1061466676327",
+    "project_id": "timedia-f4319",
+    "storage_bucket": "timedia-f4319.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1061466676327:android:fdf0a2af734d193a7988c2",
+        "android_client_info": {
+          "package_name": "com.timedia.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6w0JL-2NsrSIUgjzQPvQf1TmPUE3wJ2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
