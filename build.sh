@@ -14,7 +14,10 @@ android.useAndroidX=true
 org.gradle.jvmargs=-Xmx2g
 __TIMEDIA_EOF__
 cat > android/app/build.gradle <<'__TIMEDIA_EOF__'
-plugins { id 'com.android.application' version '8.5.2' }
+plugins {
+    id 'com.android.application' version '8.5.2'
+    id 'com.google.gms.google-services' version '4.4.2'
+}
 android {
     namespace 'com.timedia.app'
     compileSdk 34
@@ -34,6 +37,8 @@ android {
 dependencies {
     implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.core:core:1.13.1'
+    implementation platform('com.google.firebase:firebase-bom:33.5.1')
+    implementation 'com.google.firebase:firebase-messaging'
 }
 __TIMEDIA_EOF__
 cat > android/app/src/main/AndroidManifest.xml <<'__TIMEDIA_EOF__'
@@ -56,6 +61,13 @@ cat > android/app/src/main/AndroidManifest.xml <<'__TIMEDIA_EOF__'
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".FcmService" android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="timedia" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_notif" />
     </application>
 </manifest>
 __TIMEDIA_EOF__
@@ -213,7 +225,7 @@ public class MainActivity extends Activity {
         public void setToken(String token, String role) {
             c.getSharedPreferences("timedia", 0).edit()
                 .putString("token", token == null ? "" : token).putInt("last", 0).apply();
-            if (token != null && !token.isEmpty()) NotifWorker.runNow(c);
+            if (token != null && !token.isEmpty()) { NotifWorker.runNow(c); FcmService.register(c); }
         }
 
         @JavascriptInterface
@@ -298,9 +310,12 @@ public class NotifWorker extends Worker {
             }
             JSONObject d = res.getJSONObject("data");
             JSONArray items = d.getJSONArray("items");
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject it = items.getJSONObject(i);
-                show(c, it.getInt("id"), it.getString("titre"), it.getString("msg"));
+            // Ila Firebase khddam (push dyal Google), ma nbanouhomch 2 merrat.
+            if (!p.getBoolean("fcm", false)) {
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject it = items.getJSONObject(i);
+                    show(c, it.getInt("id"), it.getString("titre"), it.getString("msg"));
+                }
             }
             p.edit().putInt("last", d.getInt("last")).apply();
             return Result.success();
@@ -357,6 +372,80 @@ public class NotifWorker extends Worker {
         } catch (SecurityException e) {
             // notifications ma m7loulinch
         }
+    }
+}
+__TIMEDIA_EOF__
+cat > android/app/src/main/java/com/timedia/app/FcmService.java <<'__TIMEDIA_EOF__'
+package com.timedia.app;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+// Push dyal Google (Firebase): katwsel 7ta l'application msdouda, b7al WhatsApp.
+public class FcmService extends FirebaseMessagingService {
+
+    static void channel(Context c) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.createNotificationChannel(new NotificationChannel("timedia", "TIMEDIA", NotificationManager.IMPORTANCE_HIGH));
+        }
+    }
+
+    // Kanjibou l'adresse dyal had tilifon w kansifto l serveur (m3a session dyal li dakhel).
+    static void register(final Context c) {
+        channel(c);
+        try {
+            FirebaseMessaging.getInstance().getToken().addOnSuccessListener(t -> send(c, t));
+        } catch (Exception e) { }
+    }
+
+    static void send(final Context c, final String fcm) {
+        new Thread(() -> {
+            try {
+                SharedPreferences p = c.getSharedPreferences("timedia", 0);
+                String token = p.getString("token", "");
+                if (token.isEmpty() || fcm == null || fcm.isEmpty()) return;
+                JSONArray args = new JSONArray();
+                args.put(token);
+                args.put(fcm);
+                JSONObject body = new JSONObject();
+                body.put("fn", "registerFcm");
+                body.put("args", args);
+                JSONObject res = new JSONObject(NotifWorker.post(body.toString()));
+                if (res.optBoolean("ok")) p.edit().putBoolean("fcm", true).apply();
+            } catch (Exception e) { }
+        }).start();
+    }
+
+    @Override
+    public void onNewToken(@NonNull String t) {
+        send(getApplicationContext(), t);
+    }
+
+    // Ila l'application m7loula, Android ma kaybanch notification bo7do: kanbanoha 7na.
+    @Override
+    public void onMessageReceived(@NonNull RemoteMessage m) {
+        String titre = "TIMEDIA", msg = "";
+        if (m.getNotification() != null) {
+            if (m.getNotification().getTitle() != null) titre = m.getNotification().getTitle();
+            if (m.getNotification().getBody() != null) msg = m.getNotification().getBody();
+        } else {
+            if (m.getData().get("title") != null) titre = m.getData().get("title");
+            if (m.getData().get("body") != null) msg = m.getData().get("body");
+        }
+        NotifWorker.show(getApplicationContext(), (int) (System.currentTimeMillis() % 100000), titre, msg);
     }
 }
 __TIMEDIA_EOF__
@@ -451,6 +540,7 @@ tCciH3Eo6J0QX8gA2uT5wvpNQxkM+LOVn5ZCVbirob0eEwovOqCZhR7hQqbX/m4wTTAxMA0GCWCG
 SAFlAwQCAQUABCCesZ3nTABkvA0y0LlrQ6empcz+yBeeju4vwjyWdroAzwQUfRVWiYOYrEGva1Q+
 Rwfa/YUxLdoCAicQ
 __TIMEDIA_EOF__
+cp google-services.json android/app/google-services.json
 python3 android/patch_index.py Index.html android/app/src/main/assets/index.html
 cp android/app/src/main/assets/index.html out/app.html
 cd android
