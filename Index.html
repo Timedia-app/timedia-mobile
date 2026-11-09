@@ -1402,7 +1402,7 @@ function vSuivi(kind) {
         '<p class="small muted" style="margin:6px 4px 12px">' + t('Chiffres lus en direct dans « {tab} » (Timedia Global dashboard).', { tab: esc(r.tab) }) + '</p>' +
         '<form class="panel form" id="f"><label>' + t('Montant payé') + '<input name="montant" type="number" min="1" inputmode="numeric" placeholder="' + (reste ? Math.round(reste) : '') + '" required></label>' +
         '<label>' + t('Note (facultatif)') + '<input name="note"></label><div class="full" id="ferr"></div><button class="pri big full" id="send">' + t('Enregistrer le paiement') + '</button></form>' +
-        '<div class="panel"><div class="grp">' + t('Paiements du mois (Google Sheet)') + '</div>' + (x.list.length ? x.list.map(function (v, i) { return li(t('Paiement {n}', { n: i + 1 }), v, ''); }).join('') : '<p class="muted">' + t('Aucun paiement ce mois-ci.') + '</p>') + '</div>');
+        (kind === 'mzkia' ? '' : '<div class="panel"><div class="grp">' + t('Paiements du mois (Google Sheet)') + '</div>' + (x.list.length ? x.list.map(function (v, i) { return li(t('Paiement {n}', { n: i + 1 }), v, ''); }).join('') : '<p class="muted">' + t('Aucun paiement ce mois-ci.') + '</p>') + '</div>'));
       bindMois(function () { vSuivi(kind); });
       $('f').onsubmit = function (e) {
         e.preventDefault(); var f = this; $('send').disabled = true;
