@@ -274,6 +274,8 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .fchip{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}.fchip.f1{background:#EDE9FE;color:#5B21B6}.fchip.f0{background:#E0F2FE;color:#075985}
 .fidbar{flex-basis:100%;height:6px;border-radius:4px;background:#BAE6FD;overflow:hidden;margin-top:4px}.fidbar i{display:block;height:100%;background:#7C3AED}
 .ctab{font-size:12.5px}.ctab th,.ctab td{padding:7px 4px}.ctab td:first-child{white-space:normal;min-width:0}.ctab th{font-size:10px;letter-spacing:0}
+.pbar{display:flex;height:12px;border-radius:8px;overflow:hidden;margin:4px 0 10px;background:var(--panel2)}.pbar i{display:block;height:100%}.pdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px;vertical-align:middle}
+.yhero .l em{font-style:normal;font-weight:700}.yhero em.up{color:#059669}.yhero em.dn{color:#DC2626}
 </style>
 </head>
 <body>
@@ -317,10 +319,20 @@ function logoutLocal() { S.token = null; try { localStorage.removeItem('timedia_
 function show(html) { $('app').innerHTML = (S.admin ? '<div class="vabar"><span>' + ic('eye') + ' ' + t('Vous voyez l\'application de {n}', { n: esc(S.nom) }) + '</span><button type="button" class="sm" onclick="exitViewAs()">' + t('Quitter') + '</button></div>' : '') + html; if (!S.noScroll) window.scrollTo(0, 0); }
 /* ---------- cache: kanwerriw dghya l'ancien, w kanjibou l jdid mn lor ---------- */
 var MEM = {};
+try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && !/_(refs|ad_|sd_)/.test(k) && (localStorage.getItem(k) || '').length > 600000) localStorage.removeItem(k); }); } catch (e) {}
+function fr1() { var f = S.fresh ? 1 : 0; S.fresh = 0; return f; }
 function ckey(k) { return 'c_' + (S.nom || '') + '_' + k; }
 function cget(k) { if (MEM[ckey(k)]) return MEM[ckey(k)]; try { var x = localStorage.getItem(ckey(k)); if (x) return (MEM[ckey(k)] = JSON.parse(x)); } catch (e) {} return null; }
-function cset(k, v) { MEM[ckey(k)] = v; try { localStorage.setItem(ckey(k), JSON.stringify(v)); } catch (e) {} }
-function cclear() { var rk = ckey('refs'), rv = MEM[rk]; MEM = {}; if (rv) MEM[rk] = rv; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && k !== rk) localStorage.removeItem(k); }); } catch (e) {} }
+function cset(k, v) {
+  MEM[ckey(k)] = v; var key = ckey(k), js;
+  try { js = JSON.stringify(v); } catch (e) { return; }
+  var vital = /^(refs|ad_|sd_)/.test(k);
+  if (!vital && js.length > 600000) return; // data kbira (clients…): ghir f la mémoire, bach ma t3ammerch tilifon
+  try { localStorage.setItem(key, js); return; } catch (e) {}
+  // Tilifon 3amr (quota): nmss7o l cache l9dim (mn ghir refs) w n3awdo — bach l'ouverture tb9a sri3a.
+  try { var rk = ckey('refs'); Object.keys(localStorage).forEach(function (x) { if (x.indexOf('c_') === 0 && x !== rk && x !== key && (!vital || !/_(ad_|sd_)/.test(x) || x.indexOf(S.mois) < 0)) localStorage.removeItem(x); }); localStorage.setItem(key, js); } catch (e2) {}
+}
+function cclear() { S.fresh = 1; var rk = ckey('refs'), rv = MEM[rk]; MEM = {}; if (rv) MEM[rk] = rv; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && k !== rk) localStorage.removeItem(k); }); } catch (e) {} }
 function navTok() { S.tok = (S.tok || 0) + 1; return S.tok; }
 function swr(k, fn, args, render, onErr) {
   var tk = S.tok, c = cget(k), cs = c ? JSON.stringify(c) : '';
@@ -961,7 +973,7 @@ function wizNext(k) {
 /* ================= ACCUEIL CONSEILLÈRE ================= */
 function greet() { var h = new Date().getHours(); return h < 12 ? t('Bonjour, {nom}', { nom: S.nom }) : h < 18 ? t('Bon après-midi, {nom}', { nom: S.nom }) : t('Bonsoir, {nom}', { nom: S.nom }); }
 function sdLoad(render) {
-  return swr('sd_' + S.mois, 'getSalerData', [S.token, S.mois], function (d, cached) { S.sd = d; S.restes = d.restesOuverts; render(d, cached); }, function (e) { show(errBox(e)); });
+  return swr('sd_' + S.mois, 'getSalerData', [S.token, S.mois, fr1()], function (d, cached) { S.sd = d; S.restes = d.restesOuverts; render(d, cached); }, function (e) { show(errBox(e)); });
 }
 function sdCalc(d) {
   var base = d.commissionValidee, paid = d.commissionPayee;
@@ -1318,7 +1330,7 @@ function drawMonths(ms) {
 /* ================= ADMINISTRATEUR ================= */
 function loadAdmin(fn) {
   show(loading());
-  swr('ad_' + S.mois, 'getAdminData', [S.token, S.mois], function (d) { S.data = d; fn(d); bindMois(function () { loadAdmin(fn); }); },
+  swr('ad_' + S.mois, 'getAdminData', [S.token, S.mois, fr1()], function (d) { S.data = d; fn(d); bindMois(function () { loadAdmin(fn); }); },
     function (e) { show(errBox(e)); });
 }
 S.dtab = 'resume';
@@ -1340,7 +1352,7 @@ function vDash() {
       paceCard(d, kCmd) +
       '<div class="htiles">' +
         tile('adsday', 'mega', t('Ads du jour'), dh(isCur ? dayAds(d, today) : m.adsT), isCur ? t('Mois : {v}', { v: dh(m.adsT) }) : t('Total du mois')) +
-        tile('perso', 'wallet', t('Charges perso'), dh(m.perso), t('{n} dépense(s)', { n: persoL.length })) +
+        tile('perso', 'wallet', t('Charges perso'), '…', t('Lecture du Google Sheet…')) +
         tile('mzkia', 'shield', 'Mzkia', '…', t('Lecture du Google Sheet…')) +
         tile('fam9', 'heart', 'FAM9', '…', t('Lecture du Google Sheet…')) +
         tile('teamch', 'list', t('Charges équipe'), dh(Math.max(0, teamDue - teamPaid)), t('Reste à payer · total {v}', { v: dh(teamDue) })) +
@@ -1352,6 +1364,7 @@ function vDash() {
     bindMois(vDash);
     suiviTiles(m.mois);
     relTile();
+    persoTile(m.mois);
   });
 }
 var TILE_C = { adsday: 'c-blue', perso: 'c-purple', mzkia: 'c-green', fam9: 'c-pink', teamch: 'c-teal', detail: 'c-red', relances: 'c-amber', rapport: 'c-slate' };
@@ -1401,26 +1414,53 @@ function vAdsDay() {
   });
 }
 /* ---- Charges perso (b7al dashboard) ---- */
+function persoTile(mois) {
+  call('getPerso', S.token, mois).then(function (p) {
+    cset('ps_' + mois, p); var b = document.querySelector('.ht[data-go="perso"]'); if (!b) return;
+    b.querySelector('.htv').textContent = dh(p.total);
+    var top = Object.keys(p.by).sort(function (x, y) { return p.by[y] - p.by[x]; })[0];
+    b.querySelector('small').textContent = p.items.length ? t('{n} dépense(s)', { n: p.items.length }) + (top ? ' · ' + top : '') : t('Aucune dépense ce mois-ci.');
+  }).catch(function () {});
+}
+var PCOL = ['#7C3AED', '#2563EB', '#059669', '#D97706', '#DB2777', '#0D9488', '#DC2626', '#475569', '#65A30D'];
 function vPerso() {
-  loadAdmin(function (d) {
-    var cats = d.persoCats || ['Autre'], L = (d.sorties || []).filter(function (s) { return s.cat === 'Perso'; }), by = {};
-    L.forEach(function (s) { var c = String(s.raison || '').split(' · ')[0]; c = cats.indexOf(c) >= 0 ? c : 'Autre'; by[c] = (by[c] || 0) + s.montant; });
-    S.pcat = S.pcat || cats[0];
-    show(backTitle(t('Charges perso'), esc(moisLabel(d.m.mois)), moisPicker()) +
-      '<div class="panel yhero"><div class="l">' + t('Total du mois') + '</div><div class="v">' + dh(d.m.perso) + '</div></div>' +
-      '<form class="panel form" id="f"><div class="full">' + chips('pc', cats.map(function (c) { return [c, t(c)]; }), S.pcat) + '</div>' +
+  var cats = (S.data && S.data.persoCats) || (S.refs && S.refs.persoCats) || ['Consommation', 'Voiture', 'Essence', 'Home', 'Casa', 'Dar', 'Licences', 'Factures', 'Autre'];
+  S.pcat = S.pcat || cats[0];
+  var head = function () { return backTitle(t('Charges perso'), t('Où va votre argent personnel ce mois-ci.'), moisPicker()); };
+  show(head() + loading()); bindMois(vPerso);
+  swr('ps_' + S.mois, 'getPerso', [S.token, S.mois], function (p) {
+    if (S.view !== 'perso') return;
+    var ks = Object.keys(p.by).sort(function (a, b) { return p.by[b] - p.by[a]; });
+    var dlt = function (a, b) { if (!b) return ''; var x = Math.round((a - b) / Math.abs(b) * 100); return '<em class="' + (x <= 0 ? 'up' : 'dn') + '">' + (x >= 0 ? '+' : '') + x + '%</em>'; };
+    var g = {}; p.items.forEach(function (x) { (g[x.cat] = g[x.cat] || []).push(x); });
+    show(head() +
+      '<div class="panel yhero"><div class="l">' + t('Total du mois') + '</div><div class="v">' + dh(p.total) + '</div><div class="l">' + t('Mois passé : {v}', { v: dh(p.ptotal) }) + ' ' + dlt(p.total, p.ptotal) + '</div></div>' +
+      '<button class="pri big full" id="ppdf" style="margin-bottom:12px">' + ic('file') + ' ' + t('Télécharger le PDF') + '</button>' +
+      (ks.length ? '<div class="panel"><div class="grp">' + t('Par catégorie') + '</div><div class="pbar">' + ks.map(function (k, i) { return '<i style="width:' + (p.by[k] / p.total * 100) + '%;background:' + PCOL[i % PCOL.length] + '"></i>'; }).join('') + '</div>' +
+        '<div class="tbox"><table class="ctab"><thead><tr><th></th><th class="n">' + t('Montant') + '</th><th class="n">%</th><th class="n">' + t('Mois passé') + '</th></tr></thead><tbody>' +
+        ks.map(function (k, i) { return '<tr><td><span class="pdot" style="background:' + PCOL[i % PCOL.length] + '"></span>' + esc(t(k)) + '</td><td class="n"><b>' + n0(p.by[k]) + '</b></td><td class="n">' + Math.round(p.by[k] / p.total * 100) + '%</td><td class="n">' + n0(p.pby[k] || 0) + ' ' + dlt(p.by[k], p.pby[k] || 0) + '</td></tr>'; }).join('') +
+        '<tr class="tot"><td>Total</td><td class="n">' + n0(p.total) + '</td><td class="n">100%</td><td class="n">' + n0(p.ptotal) + '</td></tr></tbody></table></div></div>' +
+        '<div class="panel"><div class="grp">' + t('Détail') + '</div>' + ks.map(function (k, i) {
+          return '<div class="small" style="margin:10px 0 4px;font-weight:800;color:' + PCOL[i % PCOL.length] + '">' + esc(t(k)) + ' · ' + dh(p.by[k]) + '</div>' +
+            g[k].map(function (x) { return li(esc(x.note || t(k)), x.montant, (x.date ? esc(fd(x.date)) + ' · ' : '') + (x.src === 'sheet' ? 'Google Sheet' : t('Application'))); }).join('');
+        }).join('') + '</div>'
+      : '<div class="panel empty">' + t('Aucune dépense ce mois-ci.') + '</div>') +
+      '<form class="panel form" id="f"><div class="grp full">' + t('Ajouter une dépense perso') + '</div><div class="full">' + chips('pc', cats.map(function (c) { return [c, t(c)]; }), S.pcat) + '</div>' +
       '<label>' + t('Montant') + '<input name="montant" type="number" min="1" inputmode="numeric" required></label><label>' + t('Date') + '<input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></label>' +
-      '<label class="full">' + t('Note (facultatif)') + '<input name="note"></label><div class="full" id="ferr"></div><button class="pri big full" id="send">' + t('Enregistrer') + '</button></form>' +
-      '<div class="panel"><div class="grp">' + t('Par catégorie') + '</div>' + cats.filter(function (c) { return by[c]; }).map(function (c) { return li(esc(t(c)), by[c]); }).join('') + (L.length ? '' : '<p class="muted">' + t('Aucune dépense ce mois-ci.') + '</p>') + '</div>' +
-      (L.length ? '<div class="panel"><div class="grp">' + t('Détail') + '</div>' + L.map(function (s) { return li(esc(s.raison || 'Autre'), s.montant, esc(fd(s.date))); }).join('') + '</div>' : ''));
+      '<label class="full">' + t('Note (facultatif)') + '<input name="note"></label><div class="full" id="ferr"></div><button class="pri big full" id="send">' + t('Enregistrer') + '</button></form>');
+    bindMois(vPerso);
     bindChips('pc', function (k) { S.pcat = k; });
+    $('ppdf').onclick = function () {
+      var b = this; b.disabled = true; b.textContent = t('Préparation du PDF…');
+      call('persoPdf', S.token, S.mois).then(function (r) { b.disabled = false; b.innerHTML = ic('file') + ' ' + t('Télécharger le PDF'); window.open(r.url, '_blank'); })
+        .catch(function (e) { b.disabled = false; b.innerHTML = ic('file') + ' ' + t('Télécharger le PDF'); alert(errMsg(e)); });
+    };
     $('f').onsubmit = function (e) {
       e.preventDefault(); var f = this; $('send').disabled = true;
       call('addSortie', S.token, { montant: f.montant.value, cat: 'Perso', raison: S.pcat + (f.note.value ? ' · ' + f.note.value : ''), date: f.date.value }).then(function () { cclear(); toast(t('Enregistré')); vPerso(); })
         .catch(function (err) { $('send').disabled = false; $('ferr').innerHTML = errBox(err); });
     };
-    bindMois(vPerso);
-  });
+  }, function (e) { show(head() + errBox(e)); bindMois(vPerso); });
 }
 /* ---- Suivi Mzkia / FAM9 : les chiffres viennent directement du « Timedia Global dashboard » ---- */
 function suiviGet(mois, cb, force) {
@@ -1647,6 +1687,7 @@ function vSorties() {
       '<label>' + t('Conseillère (si commission)') + '<select name="saler">' + opt(S.refs.salers, '—') + '</select></label>' +
       '<label>' + t('Dette') + '<select name="dette">' + opt(S.refs.dettes, '—') + '</select></label>' +
       '<div class="full" id="ferr"></div><button class="pri big full" id="send">' + t('Enregistrer') + '</button></form>' +
+      sortRecap(d.sorties) +
       '<div class="panel"><div class="pt"><h2>' + t('Ce mois-ci') + '</h2>' + moisPicker() + '</div><div class="tbox"><table><thead><tr><th>' + t('Date') + '</th><th>' + t('Catégorie') + '</th><th>' + t('Motif') + '</th><th class="n">' + t('Montant') + '</th></tr></thead><tbody>' +
       (d.sorties.length ? d.sorties.map(function (s) { return '<tr><td>' + esc(s.date) + '</td><td>' + esc(s.cat) + '</td><td>' + esc(s.raison) + '</td><td class="n">' + n0(s.montant) + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="muted">' + t('Aucune sortie.') + '</td></tr>') +
       '</tbody></table></div></div>');
@@ -1985,6 +2026,16 @@ function vCompta() {
         .catch(function (e) { b.disabled = false; b.innerHTML = ic('file') + ' ' + t('PDF pour le comptable'); alert(errMsg(e)); });
     };
   }, function (e) { show(errBox(e)); });
+}
+
+/* Récap dyal sorties: kol catégorie fin kat mchi l flous */
+function sortRecap(L) {
+  var by = {}, n = {}, tot = 0; (L || []).forEach(function (x) { var k = x.cat || 'Autre'; by[k] = (by[k] || 0) + x.montant; n[k] = (n[k] || 0) + 1; tot += x.montant; });
+  var ks = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }); if (!ks.length) return '';
+  return '<div class="panel"><div class="grp">' + t('Où va l\'argent ce mois-ci') + ' · ' + dh(tot) + '</div><div class="pbar">' + ks.map(function (k, i) { return '<i style="width:' + (by[k] / tot * 100) + '%;background:' + PCOL[i % PCOL.length] + '"></i>'; }).join('') + '</div>' +
+    '<div class="tbox"><table class="ctab"><thead><tr><th>' + t('Catégorie') + '</th><th class="n">' + t('Nb') + '</th><th class="n">' + t('Montant') + '</th><th class="n">%</th></tr></thead><tbody>' +
+    ks.map(function (k, i) { return '<tr><td><span class="pdot" style="background:' + PCOL[i % PCOL.length] + '"></span>' + esc(t(k)) + '</td><td class="n">' + n[k] + '</td><td class="n"><b>' + n0(by[k]) + '</b></td><td class="n">' + Math.round(by[k] / tot * 100) + '%</td></tr>'; }).join('') +
+    '<tr class="tot"><td>Total</td><td class="n">' + L.length + '</td><td class="n">' + n0(tot) + '</td><td class="n">100%</td></tr></tbody></table></div></div>';
 }
 
 /* ================= TRADUCTIONS (darija, العربية, English) ================= */
