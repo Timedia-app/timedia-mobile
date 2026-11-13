@@ -820,7 +820,8 @@ function wizSteps(W) {
     if ((W.items || []).indexOf('Ads') >= 0) L.push('ads');
     if ((W.items || []).indexOf('Autre') >= 0) L.push('autre');
     if (hasVideo(W)) L.push('video');
-    L.push('pages'); }
+    // V36: « Création de page » ghir m3a Ads
+    if ((W.items || []).indexOf('Ads') >= 0) L.push('pages'); else { W.pages = []; W.pageFb = null; W.pageIg = null; } }
   L.push('pay');
   if (W.pay !== 'Reste') L.push('com');
   L.push('recu', 'ok');
