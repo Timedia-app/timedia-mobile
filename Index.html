@@ -334,7 +334,7 @@ function show(html) { $('app').innerHTML = (S.admin ? '<div class="vabar"><span>
 var MEM = {};
 try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && !/_(refs|ad_|sd_)/.test(k) && (localStorage.getItem(k) || '').length > 600000) localStorage.removeItem(k); }); } catch (e) {}
 function fr1() { var f = S.fresh ? 1 : 0; S.fresh = 0; return f; }
-function ckey(k) { return 'c_' + (S.nom || '') + '_' + k; }
+function ckey(k) { return 'c_v36_' + (S.nom || '') + '_' + k; }
 function cget(k) { if (MEM[ckey(k)]) return MEM[ckey(k)]; try { var x = localStorage.getItem(ckey(k)); if (x) return (MEM[ckey(k)] = JSON.parse(x)); } catch (e) {} return null; }
 function cset(k, v) {
   MEM[ckey(k)] = v; var key = ckey(k), js;
@@ -741,9 +741,10 @@ var ITEMS = [['Ads', 'Publicité (Ads)', '📣'], ['Vidéo voix off', 'Vidéo vo
 function loadClients(force) {
   if (S.clientsP && !force) return S.clientsP;
   if (!S.clients) { var c = cget('cl'); if (c) S.clients = c.clients; }
-  S.clientsP = call('getClients', S.token).then(function (r) { S.clients = r.clients; cset('cl', r); return r.clients; });
-  S.clientsP.catch(function () { S.clientsP = null; });
-  return S.clientsP;
+  var tk = S.token, p = call('getClients', tk).then(function (r) { if (S.token !== tk) throw new Error('SKIP'); S.clients = r.clients; cset('cl', r); return r.clients; });
+  S.clientsP = p;
+  p.catch(function () { if (S.clientsP === p) S.clientsP = null; });
+  return p;
 }
 function telDigits(x) { var d = String(x || '').replace(/\D/g, ''); return d.length >= 9 ? d.slice(-9) : d; }
 function needRelance(c) { return c.n >= 2 && (c.statut === 'relance' || c.statut === 'ghab'); }
