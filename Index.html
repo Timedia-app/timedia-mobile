@@ -326,6 +326,8 @@ function saveSession() {
     else localStorage.setItem('timedia_session', JSON.stringify({ token: S.token, role: S.role, nom: S.nom }));
   } catch (e) {}
 }
+// V35: kol mrra kaytbdl l compte (login / voir comme / quitter), kanmss7o data dyal l compte l9dim.
+function resetUser() { ['clients', 'clientsP', 'restes', 'data', 'sd', 'suivi', 'relData', 'relList', 'wiz', 'homeDay', 'myDay', 'csal', 'cq', 'satF', 'allQ', 'msal', 'cf'].forEach(function (k) { delete S[k]; }); MEM = {}; }
 function logoutLocal() { S.token = null; try { localStorage.removeItem('timedia_session'); } catch (e) {} renderLogin(); }
 function show(html) { $('app').innerHTML = (S.admin ? '<div class="vabar"><span>' + ic('eye') + ' ' + t('Vous voyez l\'application de {n}', { n: esc(S.nom) }) + '</span><button type="button" class="sm" onclick="exitViewAs()">' + t('Quitter') + '</button></div>' : '') + html; if (!S.noScroll) window.scrollTo(0, 0); }
 /* ---------- cache: kanwerriw dghya l'ancien, w kanjibou l jdid mn lor ---------- */
@@ -441,6 +443,7 @@ function renderLangPick(after) {
   document.querySelectorAll('.lbtn').forEach(function (b) { b.onclick = function () { setLang(b.dataset.l); (after || renderLogin)(); }; });
 }
 function renderLogin(msg) {
+  resetUser();
   if (!langChosen()) return renderLangPick();
   S.token = null; cclear(); try { history.replaceState(null, ''); } catch (e) {}
   var L = LANGS.filter(function (x) { return x[0] === lang(); })[0] || LANGS[2];
@@ -460,7 +463,7 @@ function renderLogin(msg) {
     e.preventDefault();
     var b = $('l-btn'); b.disabled = true; b.textContent = t('Connexion…');
     call('login', $('l-tel').value, $('l-code').value).then(function (r) {
-      S.token = r.token; S.role = r.role; S.nom = r.nom; askRemember();
+      resetUser(); S.token = r.token; S.role = r.role; S.nom = r.nom; askRemember();
     }).catch(function (er) { renderLogin(er); });
   };
 }
@@ -523,14 +526,14 @@ document.addEventListener('visibilitychange', function () {
 /* Admin: ychouf l'application b 3in conseillère (ghir chouf) */
 function enterViewAs(nom) {
   call('viewAs', S.token, nom).then(function (r) {
-    S.admin = { token: S.token, role: S.role, nom: S.nom };
+    resetUser(); S.admin = { token: S.token, role: S.role, nom: S.nom };
     S.token = r.token; S.role = 'saler'; S.nom = r.nom; S.refs = null; S.mois = new Date().toISOString().slice(0, 7);
     if (window.nativeToken && !window.__nt) { window.__nt = window.nativeToken; window.nativeToken = function () {}; }
     start();
   }).catch(function (e) { alert(errMsg(e)); });
 }
 function exitViewAs() {
-  var a = S.admin; if (!a) return; S.admin = null;
+  var a = S.admin; if (!a) return; S.admin = null; resetUser();
   S.token = a.token; S.role = a.role; S.nom = a.nom; S.refs = null;
   if (window.__nt) { window.nativeToken = window.__nt; window.__nt = null; }
   start();
