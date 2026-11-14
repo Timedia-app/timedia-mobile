@@ -834,7 +834,8 @@ function parseItems(service) {
 function openEdit(c) {
   if (!S.refs) return;
   var pi = parseItems(c.service);
-  S.wiz = { k: 'client', edit: c.id, client: c.client, tel: c.tel, ancien: null, date: c.date, items: pi.items, jours: pi.jours, qtyIA: pi.qty, budgetUsd: c.budget || 5, lancePar: 'Media buyer',
+  if (c.prix === undefined) c.prix = c.montant;
+  S.wiz = { k: 'client', edit: c.id, saler: c.saler, client: c.client, tel: c.tel, ancien: null, date: c.date, items: pi.items, jours: pi.jours, qtyIA: pi.qty, budgetUsd: c.budget || 5, lancePar: 'Media buyer',
     format: c.format || 'Facebook et Instagram', voix: c.voix || 'bnt', langage: c.langage || 'darija', pages: [], pageFb: null, pageIg: null,
     pay: c.avance >= c.prix ? 'Total' : 'Avance', prix: c.prix, avance: c.avance, banque: c.banque || S.refs.banques[0], recu: 'photo' };
   wizRender();
@@ -866,7 +867,8 @@ function wizRender(err) {
   var head = '<div class="wprog"><div style="width:' + Math.round((pos + 1) / n * 100) + '%"></div></div><div class="note">' + t('Étape {a} sur {b}', { a: pos + 1, b: n }) + '</div>';
   if (k === 'client') h = '<h2>' + t('Nom du client') + '</h2><input id="w-cl" autocomplete="off" placeholder="' + t('Nom ou numéro du client') + '" value="' + esc(W.client || '') + '">' +
     '<div id="w-sug" class="sug"></div><div id="w-tag">' + (W.ancien ? ancienTag(W.ancien) : '') + '</div>' +
-    (S.role === 'admin' ? '<label style="margin-top:14px">' + t('Pour quelle conseillère ?') + '</label>' + chipSel('w-sl', [['Maddah', t('Moi (Maddah)')]].concat((S.refs.salers || []).map(function (n) { return [n, n]; })), W.saler || 'Maddah') : '') +
+    (S.role === 'admin' && W.edit ? '<div class="tagok" style="margin-top:14px">👤 ' + t('Conseillère') + ' : <b>' + esc(W.saler || '') + '</b></div>' : '') +
+    (S.role === 'admin' && !W.edit ? '<label style="margin-top:14px">' + t('Pour quelle conseillère ?') + '</label>' + chipSel('w-sl', [['Maddah', t('Moi (Maddah)')]].concat((S.refs.salers || []).map(function (n) { return [n, n]; })), W.saler || 'Maddah') : '') +
     '<label style="margin-top:14px">' + t('Date de la commande') + '<input id="w-dt" type="date" max="' + todayISO() + '" value="' + esc(W.date || todayISO()) + '"></label>' +
     (W.edit ? '<div class="tagok">✏️ ' + t('Modification d\'une commande existante') + '</div>' : '');
   if (k === 'tel') h = '<h2>' + t('Téléphone du client') + '</h2><input id="w-tel" inputmode="tel" placeholder="06 00 00 00 00" dir="ltr" value="' + esc(W.tel || '') + '"><p class="note">' + t('Obligatoire : il sert aux relances et à l\'envoi des offres.') + '</p>';
@@ -1087,7 +1089,8 @@ function wizNext(k) {
       '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">' + ic('send') + t('Envoyer au responsable sur WhatsApp') + '</a>' +
       '<div class="row" style="width:100%"><button type="button" id="w-again" style="flex:1">' + t('Nouvelle commande') + '</button><button type="button" id="w-home" style="flex:1">' + t('Retour à l\'accueil') + '</button></div></div>');
     $('w-again').onclick = openNew;
-    $('w-home').onclick = function () { closeModal(); go(S.role === 'admin' ? 'dash' : 'home'); };
+    var back = S.view;
+    $('w-home').onclick = function () { closeModal(); go(S.role === 'admin' ? (W.edit ? back : 'dash') : 'home'); };
   }).catch(function (err) { btn.disabled = false; btn.textContent = t('Enregistrer la commande'); wizRender(err); });
 }
 
@@ -1812,6 +1815,10 @@ function bankStyle(b) { var k = String(b || '').toLowerCase().replace(/[^a-z]/g,
 function fdLong(d) { try { var x = new Date(d + 'T12:00:00'); return x.toLocaleDateString(lang() === 'en' ? 'en-GB' : (lang() === 'fr' ? 'fr-FR' : 'ar-MA'), { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) { return fd(d); } }
 // V42: l'admin ybeddel tarikh dyal commande dyal chi conseillère.
 function bindDateEdit(L, after) {
+  // V43: ✏️ Modifier — l'admin ybeddel commande kamla (services, prix, date…) bla ma ydkhl l profil dyal saler.
+  document.querySelectorAll('[data-ed]').forEach(function (b) {
+    b.onclick = function () { var x = L.filter(function (c) { return c.id === b.dataset.ed; })[0]; if (x) openEdit(Object.assign({}, x)); };
+  });
   document.querySelectorAll('[data-dt]').forEach(function (b) {
     b.onclick = function () {
       var x = L.filter(function (c) { return c.id === b.dataset.dt; })[0]; if (!x) return;
@@ -1854,7 +1861,7 @@ function vVerif() {
               '<div class="or3"><span class="small muted">' + esc(x.heure || '') + (x.type === 'commande' ? ' · ' + t('Commission') + ' <b>' + dh(x.commission) + '</b>' : '') + '</span>' +
                 (x.photo ? '<a class="small" href="' + esc(x.photo) + '" target="_blank" rel="noopener">' + ic('eye') + ' ' + t('Reçu') + '</a>' : '') +
                 (ko ? '<button class="sm" data-st="Vérifié" data-t="' + x.type + '" data-id="' + esc(x.id) + '">' + t('Rétablir') + '</button>'
-                  : (x.type === 'commande' ? '<button class="sm ghost" data-dt="' + esc(x.id) + '">📅 ' + t('Date') + '</button>' : '') + '<button class="sm ghost" data-st="Annulé" data-t="' + x.type + '" data-id="' + esc(x.id) + '">' + t('Annuler') + '</button>') + '</div>' +
+                  : (x.type === 'commande' ? '<button class="sm" data-ed="' + esc(x.id) + '">✏️ ' + t('Modifier') + '</button><button class="sm ghost" data-dt="' + esc(x.id) + '">📅 ' + t('Date') + '</button>' : '') + '<button class="sm ghost" data-st="Annulé" data-t="' + x.type + '" data-id="' + esc(x.id) + '">' + t('Annuler') + '</button>') + '</div>' +
               (chg ? '<div class="comchg">✏️ ' + esc(x.note.slice(x.note.indexOf('Commission modifiée'))) + '</div>' : '') +
               (x.message ? '<div class="resume">' + esc(x.message) + '</div>' : '') + '</div>';
           }).join('') + '</section>';
@@ -1903,7 +1910,7 @@ function vCmds() {
     show(pageTitle(t('Commandes'), esc(moisLabel(S.mois)), moisPicker()) +
       '<div class="panel"><div class="tbox"><table><thead><tr><th>' + t('Date') + '</th><th>' + t('Conseillère') + '</th><th>' + t('Client') + '</th><th>' + t('Prestation') + '</th><th class="n">' + t('Prix') + '</th><th class="n">' + t('Avance') + '</th><th class="n">' + t('Vidéo') + '</th><th class="n">Ads</th><th class="n">MB</th><th class="n">' + t('Comm.') + '</th><th class="n">' + t('Marge') + '</th><th>' + t('Statut') + '</th><th></th></tr></thead><tbody>' +
       (d.commandes.length ? d.commandes.map(function (c) {
-        return '<tr><td>' + (c.statut !== 'Annulé' ? '<button class="sm ghost" data-dt="' + esc(c.id) + '">📅 ' + esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7)) + '</button>' : esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7))) + '</td><td>' + esc(c.saler) + '</td><td>' + esc(c.client) + '</td><td class="small">' + esc(c.service) + '</td><td class="n">' + n0(c.prix) + '</td><td class="n">' + n0(c.avance) + '</td><td class="n">' + n0(c.video) + '</td><td class="n">' + n0(c.ads) + '</td><td class="n">' + n0(c.mb) + '</td><td class="n">' + n0(c.commission) + '</td><td class="n ' + (c.marge < 0 ? 'neg' : '') + '">' + n0(c.marge) + '</td><td>' + statutPill(c.statut) + '</td><td>' + (c.photo ? '<a href="' + esc(c.photo) + '" target="_blank">' + t('Reçu') + '</a>' : '') + '</td></tr>';
+        return '<tr><td>' + (c.statut !== 'Annulé' ? '<button class="sm ghost" data-dt="' + esc(c.id) + '">📅 ' + esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7)) + '</button> <button class="sm" data-ed="' + esc(c.id) + '" aria-label="' + t('Modifier') + '">✏️</button>' : esc(c.date.slice(8, 10) + '/' + c.date.slice(5, 7))) + '</td><td>' + esc(c.saler) + '</td><td>' + esc(c.client) + '</td><td class="small">' + esc(c.service) + '</td><td class="n">' + n0(c.prix) + '</td><td class="n">' + n0(c.avance) + '</td><td class="n">' + n0(c.video) + '</td><td class="n">' + n0(c.ads) + '</td><td class="n">' + n0(c.mb) + '</td><td class="n">' + n0(c.commission) + '</td><td class="n ' + (c.marge < 0 ? 'neg' : '') + '">' + n0(c.marge) + '</td><td>' + statutPill(c.statut) + '</td><td>' + (c.photo ? '<a href="' + esc(c.photo) + '" target="_blank">' + t('Reçu') + '</a>' : '') + '</td></tr>';
       }).join('') : '<tr><td colspan="13" class="muted">' + t('Aucune commande dans l\'application ce mois-ci.') + '</td></tr>') +
       '</tbody></table></div></div>' + (d.m.hist ? '<p class="note">' + t('Les commandes antérieures à l\'application sont incluses dans le tableau de bord et le bilan annuel, sans détail ligne par ligne.') + '</p>' : ''));
     bindDateEdit(d.commandes, vCmds);
