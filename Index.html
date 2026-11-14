@@ -352,7 +352,7 @@ function saveSession() {
   } catch (e) {}
 }
 // V35: kol mrra kaytbdl l compte (login / voir comme / quitter), kanmss7o data dyal l compte l9dim.
-function resetUser() { ['clients', 'clientsP', 'restes', 'data', 'sd', 'suivi', 'relData', 'relList', 'wiz', 'homeDay', 'myDay', 'csal', 'cq', 'satF', 'allQ', 'msal', 'cf'].forEach(function (k) { delete S[k]; }); MEM = {}; }
+function resetUser() { try { fsStop(); } catch (e) {} ['clients', 'clientsP', 'restes', 'data', 'sd', 'suivi', 'relData', 'relList', 'wiz', 'homeDay', 'myDay', 'csal', 'cq', 'satF', 'allQ', 'msal', 'cf'].forEach(function (k) { delete S[k]; }); MEM = {}; }
 function logoutLocal() { S.token = null; try { localStorage.removeItem('timedia_session'); } catch (e) {} renderLogin(); }
 function show(html) { $('app').innerHTML = (S.admin ? '<div class="vabar"><span>' + ic('eye') + ' ' + t('Vous voyez l\'application de {n}', { n: esc(S.nom) }) + '</span><button type="button" class="sm" onclick="exitViewAs()">' + t('Quitter') + '</button></div>' : '') + html; if (!S.noScroll) window.scrollTo(0, 0); }
 /* ---------- cache: kanwerriw dghya l'ancien, w kanjibou l jdid mn lor ---------- */
@@ -380,6 +380,88 @@ function swr(k, fn, args, render, onErr) {
     if (s !== cs && tk === S.tok) { S.noScroll = !!c; try { render(r, false); } finally { S.noScroll = false; } }
     return r;
   }).catch(function (e) { if (!c && tk === S.tok && onErr) onErr(e); });
+}
+/* ===================== V50: FIRESTORE (l'application kat9ra mn Firestore: sri3a + bla connexion) ===================== */
+var FS_CFG = { apiKey: 'AIzaSyCCDWJz_EpCtftPhS1FLiz0BsXtdr9UWT8', authDomain: 'timedia-f4319.firebaseapp.com', projectId: 'timedia-f4319', storageBucket: 'timedia-f4319.firebasestorage.app', messagingSenderId: '1061466676327', appId: '1:1061466676327:web:754a4585e04fe9677988c2' };
+var FS = { ready: false, on: false, unsub: [], got: {}, cmd: [], restes: [], pays: [], tm: 0 };
+function fsLoadSdk() {
+  if (window.firebase && firebase.firestore) return Promise.resolve();
+  var v = '10.12.2', base = 'https://www.gstatic.com/firebasejs/' + v + '/';
+  var one = function (f) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = base + f; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); };
+  return one('firebase-app-compat.js').then(function () { return Promise.all([one('firebase-auth-compat.js'), one('firebase-firestore-compat.js')]); });
+}
+function fsStop() {
+  FS.unsub.forEach(function (u) { try { u(); } catch (e) {} }); FS.unsub = []; FS.ready = false; FS.on = false; FS.got = {}; FS.cmd = []; FS.restes = []; FS.pays = [];
+  try { if (window.firebase && firebase.apps.length) firebase.auth().signOut(); } catch (e) {}
+}
+function fsStart() {
+  if (FS.on || S.role !== 'saler' || !S.token) return;
+  FS.on = true; var tok = S.token, nom = S.nom;
+  fsLoadSdk().then(function () {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FS_CFG);
+      try { firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
+    }
+    var u = firebase.auth().currentUser;
+    var ok = u ? u.getIdTokenResult().then(function (r) { return r.claims.saler === nom; }) : Promise.resolve(false);
+    return ok.then(function (same) {
+      if (same) return;
+      return call('getFirebaseToken', tok).then(function (r) { return firebase.auth().signInWithCustomToken(r.token); });
+    });
+  }).then(function () {
+    if (S.token !== tok) return;
+    var db = firebase.firestore();
+    var watch = function (col, key) {
+      FS.unsub.push(db.collection(col).where('saler', '==', nom).onSnapshot(function (snap) {
+        FS[key] = snap.docs.map(function (d) { var o = d.data(); o._id = d.id; return o; });
+        FS.got[key] = 1;
+        if (FS.got.cmd && FS.got.restes && FS.got.pays) { var first = !FS.ready; FS.ready = true; fsChanged(first); }
+      }, function () { FS.on = false; FS.ready = false; }));
+    };
+    watch('commandes', 'cmd'); watch('restes', 'restes'); watch('comPaiements', 'pays');
+  }).catch(function () { FS.on = false; });
+}
+// Kayrjje3 nafs l'objet dyal getSalerData (serveur), mais mn Firestore.
+function fsSalerData(mois) {
+  var nom = S.nom, paid = {};
+  FS.restes.forEach(function (r) { if (r.statut !== 'Annulé') paid[r.commandeId] = (paid[r.commandeId] || 0) + (+r.montant || 0); });
+  var toutes = FS.cmd.filter(function (c) { return c.statut !== 'Annulé'; }).map(function (c) {
+    var app = c.app !== false;
+    return { id: app ? c._id : '', date: c.date, mois: c.mois, client: c.client, tel: c.tel || '', service: c.service || '', prix: +c.prix || 0, avance: app ? (+c.avance || 0) : (+c.avance || +c.prix || 0),
+      reste: app ? (+c.prix || 0) - (+c.avance || 0) - (paid[c._id] || 0) : 0, commission: +c.commission || 0, statut: c.statut, ancien: !app };
+  });
+  var cmd = toutes.filter(function (c) { return c.mois === mois; }).sort(function (x, y) { return x.date < y.date ? 1 : -1; });
+  var valides = cmd.filter(function (c) { return c.statut === 'Vérifié'; });
+  var sum = function (a, k) { return a.reduce(function (t, c) { return t + (c[k] || 0); }, 0); };
+  var pays = FS.pays.filter(function (p) { return p.mois === mois; }).map(function (p) { return { date: p.date, montant: +p.montant || 0, note: p.note || '' }; });
+  var M = {};
+  toutes.forEach(function (c) { var m = M[c.mois] = M[c.mois] || { mois: c.mois, n: 0, ca: 0, com: 0, ads: 0 }; m.n++; m.ca += c.prix; m.com += c.commission; });
+  var D = {};
+  toutes.forEach(function (c) { if (c.statut !== 'Vérifié') return; var x = (D[c.date] = D[c.date] || {}); x = x[nom] = x[nom] || [0, 0, 0, 0, 0]; x[0] += c.prix; x[1]++; x[3] += c.avance; x[4] += c.commission; });
+  var y = +mois.slice(0, 4), mm = +mois.slice(5, 7), nd = new Date(y, mm, 0).getDate(), days = [];
+  for (var i = 1; i <= nd; i++) { var dd = mois + '-' + (i < 10 ? '0' : '') + i; days.push({ d: dd, s: D[dd] || {} }); }
+  var cmdsMois = FS.cmd.filter(function (c) { return c.mois === mois; }).map(function (c) {
+    var app = c.app !== false, ts = c.cree ? (c.cree.toDate ? c.cree.toDate().getTime() : Date.parse(c.cree)) : 0;
+    return app ? { id: c._id, date: c.date, client: c.client, tel: c.tel || '', service: c.service || '', jours: +c.jours || 0, budget: +c.budgetUsd || 0, prix: +c.prix || 0, avance: +c.avance || 0,
+      banque: c.banque || '', commission: +c.commission || 0, statut: c.statut, note: c.note || '', format: c.format || '', voix: c.voix || '', langage: c.langage || '', app: true,
+      ts: ts || 0, heure: ts ? new Date(ts).toTimeString().slice(0, 5) : '' }
+      : { id: '', date: c.date, client: c.client, tel: c.tel || '', service: c.service || '', prix: +c.prix || 0, avance: +c.avance || +c.prix || 0, commission: +c.commission || 0, statut: 'Vérifié', app: false, ts: 0, heure: '' };
+  }).sort(function (x, y) { return x.date === y.date ? y.ts - x.ts : (x.date < y.date ? 1 : -1); });
+  var comPayee = pays.reduce(function (t, p) { return t + p.montant; }, 0);
+  return { nom: nom, mois: mois, commandes: cmd, cmdsMois: cmdsMois, nCmd: cmd.length, nValides: valides.length, ca: sum(valides, 'prix'), ads: 0,
+    commission: sum(cmd, 'commission'), commissionValidee: sum(valides, 'commission'), commissionPayee: comPayee, paiements: pays,
+    nAttente: cmd.length - valides.length - cmd.filter(function (c) { return c.statut === 'Annulé'; }).length,
+    restesOuverts: toutes.filter(function (x) { return x.reste > 0 && x.id; }).map(function (x) { return { id: x.id, client: x.client, date: x.date, reste: x.reste }; }),
+    months: Object.keys(M).sort().reverse().map(function (k) { return M[k]; }), days: days, fs: true };
+}
+// Ila tbeddlat chi 7aja f Firestore (commande jdida…), n3awdo nrssmo la page (ila ma kaynach fenêtre m7loula).
+function fsChanged(first) {
+  clearTimeout(FS.tm);
+  FS.tm = setTimeout(function () {
+    if ($('modal') || S.role !== 'saler') return;
+    if (['home', 'mcmds', 'perf', 'year'].indexOf(S.view) < 0) return;
+    S.noScroll = !first; try { go(S.view, true); } finally { S.noScroll = false; }
+  }, 250);
 }
 function errMsg(e) { var m = String(e && e.message || e || ''); return t(ERRMAP[m] || m); }
 function errBox(e) { return '<div class="err">' + esc(errMsg(e)) + '</div>'; }
@@ -523,6 +605,7 @@ function start() {
   swr('refs', 'getRefs', [S.token], function (r) {
     S.refs = r; $('who').innerHTML = ''; refreshHeader();
     if (!first) return; first = false;
+    if (S.role === 'saler') fsStart();
     clearInterval(S.poll); S.poll = setInterval(refreshBadge, 60000); setTimeout(refreshBadge, 3000);
     var tabs = tabsFor();
     $('hdr').hidden = false; $('nav').hidden = false;
@@ -1098,6 +1181,8 @@ function wizNext(k) {
 /* ================= ACCUEIL CONSEILLÈRE ================= */
 function greet() { var h = new Date().getHours(); return h < 12 ? t('Bonjour, {nom}', { nom: S.nom }) : h < 18 ? t('Bon après-midi, {nom}', { nom: S.nom }) : t('Bonsoir, {nom}', { nom: S.nom }); }
 function sdLoad(render) {
+  // V50: ila Firestore wajed → fissa3 (bla serveur, w 7ta bla connexion).
+  if (FS.ready && S.role === 'saler') { var d = fsSalerData(S.mois); S.sd = d; S.restes = d.restesOuverts; render(d, false); return Promise.resolve(d); }
   return swr('sd_' + S.mois, 'getSalerData', [S.token, S.mois, fr1()], function (d, cached) { S.sd = d; S.restes = d.restesOuverts; render(d, cached); }, function (e) { show(errBox(e)); });
 }
 function sdCalc(d) {
