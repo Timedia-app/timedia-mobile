@@ -18,6 +18,8 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: bash build.sh
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
       - uses: actions/upload-artifact@v4
         with:
           name: TIMEDIA-apk
