@@ -372,7 +372,8 @@ function cset(k, v) {
   // Tilifon 3amr (quota): nmss7o l cache l9dim (mn ghir refs) w n3awdo — bach l'ouverture tb9a sri3a.
   try { var rk = ckey('refs'); Object.keys(localStorage).forEach(function (x) { if (x.indexOf('c_') === 0 && x !== rk && x !== key && (!vital || !/_(ad_|sd_)/.test(x) || x.indexOf(S.mois) < 0)) localStorage.removeItem(x); }); localStorage.setItem(key, js); } catch (e2) {}
 }
-function cclear() { S.fresh = 1; var rk = ckey('refs'), rv = MEM[rk]; MEM = {}; if (rv) MEM[rk] = rv; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && k !== rk) localStorage.removeItem(k); }); } catch (e) {} }
+// V54: mor tbdil, ma kanmss7och l'ancien (dashboard, refs…): kayban dghya w l jdid kayji mn lor. Ghir f logout kanmss7o kolchi.
+function cclear(all) { S.fresh = 1; var keep = function (k) { return !all && /_(refs|ad_|sd_|tl_)/.test(k); }; Object.keys(MEM).forEach(function (k) { if (!keep(k)) delete MEM[k]; }); try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('c_') === 0 && !keep(k)) localStorage.removeItem(k); }); } catch (e) {} }
 function navTok() { S.tok = (S.tok || 0) + 1; return S.tok; }
 function swr(k, fn, args, render, onErr) {
   var tk = S.tok, c = cget(k), cs = c ? JSON.stringify(c) : '';
@@ -405,7 +406,9 @@ function fsStart() {
       firebase.initializeApp(FS_CFG);
       try { firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
     }
-    var u = firebase.auth().currentUser;
+    // V54: nsennaw Firebase y3awd l session l9dima (IndexedDB) 9bel ma ntlbo token jdid mn serveur.
+    return new Promise(function (res) { var un = firebase.auth().onAuthStateChanged(function (x) { un(); res(x); }); setTimeout(function () { res(firebase.auth().currentUser); }, 4000); });
+  }).then(function (u) {
     var ok = u ? u.getIdTokenResult().then(function (r) { return isA ? r.claims.role === 'admin' : r.claims.saler === nom; }) : Promise.resolve(false);
     return ok.then(function (same) {
       if (same) return;
@@ -562,7 +565,7 @@ function renderLangPick(after) {
 function renderLogin(msg) {
   resetUser();
   if (!langChosen()) return renderLangPick();
-  S.token = null; cclear(); try { history.replaceState(null, ''); } catch (e) {}
+  S.token = null; cclear(true); try { history.replaceState(null, ''); } catch (e) {}
   var L = LANGS.filter(function (x) { return x[0] === lang(); })[0] || LANGS[2];
   gate(gateTop() + '<div class="gbody"><form class="gcard" id="lg" autocomplete="on"><div><h1>' + t('Connexion') + '</h1><div class="sub">' + t('Bon retour parmi nous. Connectez-vous à votre espace.') + '</div></div>' +
     (msg ? errBox(msg) : '') +
@@ -1825,12 +1828,14 @@ function vAdsDay() {
 }
 /* ---- Charges perso (b7al dashboard) ---- */
 function persoTile(mois) {
-  call('getPerso', S.token, mois).then(function (p) {
-    cset('ps_' + mois, p); var b = document.querySelector('.ht[data-go="perso"]'); if (!b) return;
+  var paint = function (p) {
+    var b = document.querySelector('.ht[data-go="perso"]'); if (!b) return;
     b.querySelector('.htv').textContent = dh(p.total);
     var top = Object.keys(p.by).sort(function (x, y) { return p.by[y] - p.by[x]; })[0];
     b.querySelector('small').textContent = p.items.length ? t('{n} dépense(s)', { n: p.items.length }) + (top ? ' · ' + top : '') : t('Aucune dépense ce mois-ci.');
-  }).catch(function () {});
+  };
+  var c = cget('tl_ps_' + mois); if (c && c.by) try { paint(c); } catch (e) {}
+  call('getPerso', S.token, mois).then(function (p) { if (!p || !p.by) return; cset('ps_' + mois, p); cset('tl_ps_' + mois, p); paint(p); }).catch(function () {});
 }
 var PCOL = ['#7C3AED', '#2563EB', '#059669', '#D97706', '#DB2777', '#0D9488', '#DC2626', '#475569', '#65A30D'];
 function vPerso() {
@@ -1879,7 +1884,11 @@ function suiviGet(mois, cb, force) {
   call('getSuivi', S.token, mois).then(function (r) { S.suivi[mois] = r; cb(r); }).catch(function (e) { cb({ err: e }); });
 }
 function suiviTiles(mois) {
-  suiviGet(mois, function (r) {
+  var c = cget('tl_sv_' + mois); if (c && c.mz && c.fam) try { suiviPaint(c); } catch (e) {}
+  suiviGet(mois, function (r) { if (r && r.mz && r.fam) cset('tl_sv_' + mois, r); else if (c && c.mz && !(r && r.none)) return; try { suiviPaint(r && (r.mz || r.none || r.err) ? r : { err: 1 }); } catch (e) {} }, true);
+}
+function suiviPaint(r) {
+  (function () {
     ['mzkia', 'fam9'].forEach(function (k) {
       var b = document.querySelector('.ht[data-go="' + k + '"]'); if (!b) return;
       if (!r || r.err || r.none) { b.querySelector('small').textContent = r && r.none ? t('Mois absent du Google Sheet') : t('Google Sheet indisponible'); return; }
@@ -1888,7 +1897,7 @@ function suiviTiles(mois) {
       b.querySelector('small').textContent = t('Reste · payé {p} / {d}', { p: dh(x.paid), d: dh(x.due) });
       b.classList.toggle('okt', x.due > 0 && x.reste <= 0);
     });
-  }, true);
+  })();
 }
 function vSuivi(kind) {
   loadAdmin(function (d) {
@@ -2401,12 +2410,14 @@ function loadScriptHistory() {
 
 /* ================= RELANCES dyal kol conseillère ================= */
 function relTile() {
-  call('getRelances', S.token, S.mois).then(function (r) {
+  var mois = S.mois, paint = function (r) {
     S.relData = r; var b = document.querySelector('.ht[data-go="relances"]'); if (!b) return;
     var tod = r.salers.reduce(function (s, x) { return s + x.today; }, 0), mo = r.salers.reduce(function (s, x) { return s + x.mois; }, 0);
     b.querySelector('.htv').textContent = tod + ' ' + t('auj.');
     b.querySelector('small').textContent = r.salers.map(function (x) { return x.nom + ' ' + x.today; }).join(' · ') + ' · ' + t('mois {n}', { n: mo });
-  }).catch(function () {});
+  };
+  var c = cget('tl_rl_' + mois); if (c && c.salers) try { paint(c); } catch (e) {}
+  call('getRelances', S.token, mois).then(function (r) { if (!r || !r.salers) return; cset('tl_rl_' + mois, r); paint(r); }).catch(function () {});
 }
 function vRelances() {
   show(backTitle(t('Relances'), t('Qui a relancé qui, et combien il en reste.'), moisPicker()) + loading());
