@@ -981,7 +981,8 @@ function budHint(W, val) {
   var usd = val === undefined ? (+W.budgetUsd || 0) : budUsd(W, val), j = +W.jours || 0;
   if (!usd) return '';
   return '<b>' + (W.cur === 'DH' ? '= ' + n0(Math.round(usd * 10) / 10) + ' $' : '≈ ' + n0(usd * TAUX_USD) + ' DH') + ' ' + t('par jour') + '</b>' +
-    (j ? ' · ' + t('Budget Ads réel (60 %) ≈ {m} sur {j} jours', { m: dh(Math.round(usd * RATIO_ADS * j * TAUX_USD)), j: j }) : '');
+    // V44: l'budget réel (60 %) confidentiel → ghir l'admin.
+    (j && S.role === 'admin' ? ' · ' + t('Budget Ads réel (60 %) ≈ {m} sur {j} jours', { m: dh(Math.round(usd * RATIO_ADS * j * TAUX_USD)), j: j }) : '');
 }
 function wizSave(k) {
   var W = S.wiz, v = function (id) { var e = $(id); return e ? e.value : undefined; };
