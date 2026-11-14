@@ -783,10 +783,10 @@ function readPhoto(file) {
     fr.onload = function () {
       var img = new Image();
       img.onload = function () {
-        var max = 1400, w = img.width, h = img.height, k = Math.min(1, max / Math.max(w, h));
+        var max = 1000, w = img.width, h = img.height, k = Math.min(1, max / Math.max(w, h));
         var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        res(c.toDataURL('image/jpeg', 0.8));
+        res(c.toDataURL('image/jpeg', 0.72));
       };
       img.onerror = function () { rej(new Error(t('Image illisible.'))); };
       img.src = fr.result;
@@ -941,7 +941,7 @@ function wizSteps(W) {
 }
 function openNew() {
   if (!S.refs) return;
-  S.wiz = { k: 'client', items: [], jours: 7, budgetUsd: 5, lancePar: 'Media buyer', format: 'Facebook et Instagram', voix: 'bnt', langage: 'darija',
+  S.wiz = { qid: 'W' + Date.now() + Math.random().toString(36).slice(2, 7), k: 'client', items: [], jours: 7, budgetUsd: 5, lancePar: 'Media buyer', format: 'Facebook et Instagram', voix: 'bnt', langage: 'darija',
     pages: [], pageFb: null, pageIg: null, pay: 'Avance', banque: S.refs.banques[0], recu: 'photo', date: todayISO(), qtyIA: 1 };
   loadClients().catch(function () {});
   wizRender();
@@ -1155,7 +1155,7 @@ function wizPayload(W) {
     budgetUsd: W.budgetUsd, lancePar: W.lancePar, autre: W.autre, commissionManuelle: W.commissionManuelle, pageFb: W.pageFb, pageIg: W.pageIg,
     format: hasVideo(W) ? W.format : '', voix: hasVideo(W) ? W.voix : '', langage: hasVideo(W) ? W.langage : '', prix: W.prix, avance: W.avance,
     payType: W.pay, banque: W.banque, saler: S.role === 'admin' ? (W.saler || 'Maddah') : undefined, date: W.date || todayISO(), qtyIA: W.items.indexOf('Vidéo IA') >= 0 ? (W.qtyIA || 1) : 0,
-    supp: W.comMode === 'supp' ? (+W.supp || 0) : 0, suppRaison: W.comMode === 'supp' ? W.suppRaison : '' };
+    supp: W.comMode === 'supp' ? (+W.supp || 0) : 0, suppRaison: W.comMode === 'supp' ? W.suppRaison : '', qid: W.edit ? '' : (W.qid || '') };
 }
 /* ---------- commission: m7soba 9bel l'envoi, saler katconfirmi wla katbeddel b sabab ---------- */
 function comDetail(W) {
