@@ -385,7 +385,7 @@ function swr(k, fn, args, render, onErr) {
 }
 /* ===================== V50: FIRESTORE (l'application kat9ra mn Firestore: sri3a + bla connexion) ===================== */
 var FS_CFG = { apiKey: 'AIzaSyCCDWJz_EpCtftPhS1FLiz0BsXtdr9UWT8', authDomain: 'timedia-f4319.firebaseapp.com', projectId: 'timedia-f4319', storageBucket: 'timedia-f4319.firebasestorage.app', messagingSenderId: '1061466676327', appId: '1:1061466676327:web:754a4585e04fe9677988c2' };
-var FS = { ready: false, on: false, unsub: [], got: {}, cmd: [], restes: [], pays: [], tm: 0 };
+var FS = { ready: false, on: false, unsub: [], got: {}, cmd: [], restes: [], pays: [], dash: {}, tm: 0 };
 function fsLoadSdk() {
   if (window.firebase && firebase.firestore) return Promise.resolve();
   var v = '10.12.2', base = 'https://www.gstatic.com/firebasejs/' + v + '/';
@@ -393,11 +393,12 @@ function fsLoadSdk() {
   return one('firebase-app-compat.js').then(function () { return Promise.all([one('firebase-auth-compat.js'), one('firebase-firestore-compat.js')]); });
 }
 function fsStop() {
-  FS.unsub.forEach(function (u) { try { u(); } catch (e) {} }); FS.unsub = []; FS.ready = false; FS.on = false; FS.got = {}; FS.cmd = []; FS.restes = []; FS.pays = [];
+  FS.unsub.forEach(function (u) { try { u(); } catch (e) {} }); FS.unsub = []; FS.ready = false; FS.on = false; FS.got = {}; FS.cmd = []; FS.restes = []; FS.pays = []; FS.dash = {};
   try { if (window.firebase && firebase.apps.length) firebase.auth().signOut(); } catch (e) {}
 }
 function fsStart() {
-  if (FS.on || S.role !== 'saler' || !S.token) return;
+  if (FS.on || (S.role !== 'saler' && S.role !== 'admin') || !S.token || S.admin) return;
+  var isA = S.role === 'admin';
   FS.on = true; var tok = S.token, nom = S.nom;
   fsLoadSdk().then(function () {
     if (!firebase.apps.length) {
@@ -405,7 +406,7 @@ function fsStart() {
       try { firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
     }
     var u = firebase.auth().currentUser;
-    var ok = u ? u.getIdTokenResult().then(function (r) { return r.claims.saler === nom; }) : Promise.resolve(false);
+    var ok = u ? u.getIdTokenResult().then(function (r) { return isA ? r.claims.role === 'admin' : r.claims.saler === nom; }) : Promise.resolve(false);
     return ok.then(function (same) {
       if (same) return;
       return call('getFirebaseToken', tok).then(function (r) { return firebase.auth().signInWithCustomToken(r.token); });
@@ -420,6 +421,13 @@ function fsStart() {
         if (FS.got.cmd && FS.got.restes && FS.got.pays) { var first = !FS.ready; FS.ready = true; fsChanged(first); }
       }, function () { FS.on = false; FS.ready = false; }));
     };
+    if (isA) {
+      FS.unsub.push(db.collection('admin').doc('dash').collection('mois').onSnapshot(function (snap) {
+        snap.docs.forEach(function (x) { var o = x.data(); try { FS.dash[x.id] = { d: JSON.parse(o.json), t: o.maj && o.maj.toDate ? o.maj.toDate().getTime() : 0 }; } catch (e) {} });
+        var first = !FS.ready; FS.ready = true; fsChanged(first);
+      }, function () { FS.on = false; FS.ready = false; }));
+      return;
+    }
     watch('commandes', 'cmd'); watch('restes', 'restes'); watch('comPaiements', 'pays');
   }).catch(function () { FS.on = false; });
 }
@@ -460,8 +468,8 @@ function fsSalerData(mois) {
 function fsChanged(first) {
   clearTimeout(FS.tm);
   FS.tm = setTimeout(function () {
-    if ($('modal') || S.role !== 'saler') return;
-    if (['home', 'mcmds', 'perf', 'year'].indexOf(S.view) < 0) return;
+    if ($('modal') || S.admin) return;
+    if (S.role === 'admin' ? ['dash', 'verif', 'cmds'].indexOf(S.view) < 0 : ['home', 'mcmds', 'perf', 'year'].indexOf(S.view) < 0) return;
     S.noScroll = !first; try { go(S.view, true); } finally { S.noScroll = false; }
   }, 250);
 }
@@ -607,7 +615,7 @@ function start() {
   swr('refs', 'getRefs', [S.token], function (r) {
     S.refs = r; $('who').innerHTML = ''; refreshHeader();
     if (!first) return; first = false;
-    if (S.role === 'saler') { fsStart(); setTimeout(qFlush, 2500); }
+    fsStart(); if (S.role === 'saler') setTimeout(qFlush, 2500);
     clearInterval(S.poll); S.poll = setInterval(refreshBadge, 60000); setTimeout(refreshBadge, 3000);
     var tabs = tabsFor();
     $('hdr').hidden = false; $('nav').hidden = false;
@@ -643,7 +651,7 @@ function enterViewAs(nom) {
   }).catch(function (e) { alert(errMsg(e)); });
 }
 function exitViewAs() {
-  var a = S.admin; if (!a) return; S.admin = null; resetUser();
+  var a = S.admin; if (!a) return; S.admin = null; resetUser(); setTimeout(fsStart, 300);
   S.token = a.token; S.role = a.role; S.nom = a.nom; S.refs = null;
   if (window.__nt) { window.nativeToken = window.__nt; window.__nt = null; }
   start();
@@ -1724,6 +1732,13 @@ function drawMonths(ms) {
 
 /* ================= ADMINISTRATEUR ================= */
 function loadAdmin(fn) {
+  // V53: Firestore (fissa3 + bla connexion) → ila kayn, nrssmo daba; serveur kay3awd l7sab f lor ila dak l'7sab 9dim.
+  var fd = FS.ready && FS.dash && FS.dash[S.mois];
+  if (fd && S.role === 'admin' && !S.admin) {
+    S.data = fd.d; fn(fd.d); bindMois(function () { loadAdmin(fn); });
+    if (Date.now() - fd.t > 120000 && !S.dashReq) { S.dashReq = 1; call('getAdminData', S.token, S.mois, false).then(function () { S.dashReq = 0; }, function () { S.dashReq = 0; }); }
+    return;
+  }
   show(loading());
   swr('ad_' + S.mois, 'getAdminData', [S.token, S.mois, fr1()], function (d) { S.data = d; fn(d); bindMois(function () { loadAdmin(fn); }); },
     function (e) { show(errBox(e)); });
