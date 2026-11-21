@@ -353,7 +353,8 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .si>i{width:12px;height:12px;border-radius:4px}.si span{font-weight:600;font-size:14px;min-width:0}.si span small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
 .si b{font:700 14px var(--head);font-variant-numeric:tabular-nums}.si em{font-style:normal;font-size:12px;color:var(--muted);text-align:end}
 #gk:empty,#gy:empty{display:none}.gcard #gk .chips,.gcard #gy .chips{margin:2px 0 0!important;padding-bottom:0}.gcard .chips button{padding:6px 12px;font-size:13px;min-height:0}.welcome .mpill input{color:#17151A}
-@media (max-width:360px){.mb-ca{font-size:28px}.mb-c b{font-size:15px}}
+.mb-row{gap:6px}.mb-c{padding:8px}.mb-c b{font-size:clamp(14px,4.4vw,19px);overflow:visible;text-overflow:clip;letter-spacing:-.3px}.mb-c b i{font-style:normal;font-size:.62em;font-weight:700;opacity:.75;margin-inline-start:3px}.mb-c small{white-space:normal;line-height:1.3}.gcard .gh{margin-bottom:2px}
+@media (max-width:360px){.mb-ca{font-size:28px}}
 </style>
 </head>
 <body>
@@ -1799,9 +1800,9 @@ function moneyBoard(m, kCmd) {
     '<div class="mb-top"><span>' + t('Entrées (CA)') + '</span><b class="mb-ca">' + dh(ca) + '</b><small>' + t('{n} commandes', { n: m.nCmd }) + (m.nCmd ? ' · ' + t('panier moyen {v}', { v: dh(ca / m.nCmd) }) : '') + '</small></div>' +
     '<div class="mb-bar" aria-hidden="true"><i style="width:' + chP.toFixed(1) + '%;background:' + KC.ch + '"></i><i style="width:' + netP.toFixed(1) + '%;background:' + KC.net + '"></i></div>' +
     '<div class="mb-row">' +
-      '<div class="mb-c" style="--c:' + KC.ch + '"><span>' + t('Charges') + '</span><b>' + dh(kCmd) + '</b><small>' + t('{p} du CA', { p: pct(kCmd / (ca || 1)) }) + '</small></div>' +
-      '<div class="mb-c" style="--c:' + KC.net + '"><span>NET</span><b class="' + (m.net < 0 ? 'neg' : '') + '">' + dh(m.net) + '</b><small>' + t('Marge {p}', { p: pct((m.net || 0) / (ca || 1)) }) + '</small></div>' +
-      '<div class="mb-c" style="--c:' + KC.pure + '"><span>Pure</span><b>' + dh(m.pure) + '</b><small>' + t('après Mzkia & FAM9') + '</small></div>' +
+      '<div class="mb-c" style="--c:' + KC.ch + '"><span>' + t('Charges') + '</span><b>' + n0(kCmd) + '<i>DH</i></b><small>' + t('{p} du CA', { p: pct(kCmd / (ca || 1)) }) + '</small></div>' +
+      '<div class="mb-c" style="--c:' + KC.net + '"><span>NET</span><b class="' + (m.net < 0 ? 'neg' : '') + '">' + n0(m.net) + '<i>DH</i></b><small>' + t('Marge {p}', { p: pct((m.net || 0) / (ca || 1)) }) + '</small></div>' +
+      '<div class="mb-c" style="--c:' + KC.pure + '"><span>Pure</span><b>' + n0(m.pure) + '<i>DH</i></b><small>' + t('après Mzkia & FAM9') + '</small></div>' +
     '</div></div>';
 }
 function svgBars(vals, labels, color, o) {
