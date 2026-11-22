@@ -401,6 +401,7 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .bfpick{display:flex;flex-direction:column;gap:8px}.bfpick button{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:12px 14px;min-height:60px;font-family:inherit;color:var(--ink);text-align:start}
 .bfpick .bfdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--c1);flex:none;position:relative}.bfpick button.on{border:2px solid var(--c1);box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 20%,transparent)}.bfpick button.on .bfdot::after{content:"";position:absolute;inset:4px;border-radius:50%;background:linear-gradient(120deg,var(--c1),var(--c2))}
 .bfpn{flex:1;display:flex;flex-direction:column;min-width:0}.bfpn b{font-size:15px}.bfpn small{font-size:12px;color:var(--muted)}.bfpp{display:flex;flex-direction:column;align-items:flex-end}.bfpp b{white-space:nowrap}.bfpp s{font-size:12px;color:var(--muted);white-space:nowrap}
+.bfnotel{color:#D97706;font-weight:700}
 .bfcomfix{background:linear-gradient(120deg,var(--c1),var(--c2));color:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px}.bfcomfix span{font-family:Anton,Impact,sans-serif;font-size:18px;letter-spacing:1px}.bfcomfix b{font-size:20px}.bfcomfix strong{font-size:22px}
 </style>
 </head>
@@ -1763,11 +1764,11 @@ function bfCd(small) { var L = bfLeft(), lab = ['أيام', 'ساعات', 'دق�
   return '<div class="bfcd' + (small ? ' sm' : '') + '" dir="ltr">' + L.map(function (v, i) { return '<span class="' + (i === 3 ? 'on' : '') + '"><b data-bfcd="' + i + '">' + v + '</b><i>' + lab[i] + '</i></span>'; }).join('') + '</div>'; }
 setInterval(function () { var els = document.querySelectorAll('[data-bfcd]'); if (!els.length || !S.refs || !S.refs.bf) return; var L = bfLeft(); Array.prototype.forEach.call(els, function (e) { e.textContent = L[+e.dataset.bfcd]; }); }, 1000);
 function bfVid(c) { return /vid|ugc|hook|montage|فيديو/i.test(c.dernier || ''); }
-// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), akhir commande ≤ 2 chhor (≤ 4 chhor ila kay3awd).
+// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), akhir commande ≤ 3 chhor (≤ 6 chhor ila kay3awd). Bla nmra: WhatsApp kay7el w hiya katkhtar l contact.
 function bfBuckets(all) {
   var B = { up7: [], p950: [], sem2: [], big: [], ret: [], ref: [] };
   (all || []).forEach(function (c) {
-    if (!c.tel || c.since > (c.n >= 2 ? 120 : 60) || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
+    if (c.since > (c.n >= 2 ? 180 : 90) || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
     var b = c.lastPrix >= 1500 && c.lastJ >= 6 ? 'big' : c.n >= 2 && c.lastJ >= 5 && !bfVid(c) ? 'sem2' : bfVid(c) ? 'p950' : c.lastJ && c.lastJ <= 5 ? 'up7' : 'ret';
     B[b].push(c); B.ref.push(c);
   });
@@ -1811,10 +1812,10 @@ function vBfo() {
       var sent = L.filter(bfSent).length, rows = L.filter(function (c) { return f === 'all' || (f === 'sent' ? bfSent(c) : !bfSent(c)); });
       show('<div class="bfo-h" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><button type="button" class="bfback" id="bf-back">← العروض</button><b>' + esc(p.n) + '</b><span>' + (p.p ? n0(p.p) + ' DH بلاصة ' + n0(p.o) + ' · ' : '') + 'الكوميسيون ديالك ' + (p.ref ? 'عادية' : p.com + ' DH') + '</span>' + bfCd(true) + '</div>' +
         '<div class="panel bfprog"><div class="bfpr"><b>' + L.length + ' كليان مهتمين</b><span>' + sent + ' تصيفطو</span></div><div class="bar"><i style="width:' + (L.length ? sent / L.length * 100 : 0) + '%"></i></div>' +
-        (p.big ? '<div class="note">ختاري الباك على حسب البيدجي اللي كيطلق الكليان فالنهار (15$ ولا 20$) والوتيرة ديالو.</div>' : '') + '</div>' +
+        (p.big ? '<div class="note">ختاري الباك على حسب البيدجي اللي كيطلق الكليان فالنهار (15 ولا 20 دولار) والوتيرة ديالو.</div>' : '') + '</div>' +
         chips('bff', [['all', 'الكل (' + L.length + ')'], ['left', 'باقي (' + (L.length - sent) + ')'], ['sent', 'تصيفطو (' + sent + ')']], f) +
         '<div class="bfrows">' + (rows.length ? rows.map(function (c) { var i = L.indexOf(c);
-          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + '</b><span>آخر كوموند: ' + esc(c.dernier || '') + ' · ' + n0(c.lastPrix) + ' DH</span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند</small></div>' +
+          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + '</b><span>آخر كوموند: ' + esc(c.dernier || '') + ' · ' + n0(c.lastPrix) + ' DH</span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند' + (c.tel ? '' : ' · <b class="bfnotel">ما كايناش النمرة</b>') + '</small></div>' +
             (bfSent(c) ? '<span class="bfok">تصيفط ✓</span>' : '<button type="button" class="bfsend" data-i="' + i + '">' + ic('send') + 'صيفط</button>') + '</div>'; }).join('') : '<div class="panel empty">ما كاين حتى كليان هنا.</div>') + '</div>');
       $('bf-back').onclick = function () { go('bf'); };
       bindChips('bff', function (x) { f = S.bfF = x; draw(); });
@@ -1827,10 +1828,10 @@ function bfMsg(p, c, after) {
   var txt = 'السلام عليكم ' + c.nom + ' 👋\nBlack Friday عند TIMEDIA 🖤\n' + p.msg + '\nالعرض صالح غير حتى الاثنين 30 نونبر.\nنبداو ليك؟';
   modal('<h2>Message لـ ' + esc(c.nom) + '</h2><span class="pill" style="background:' + p.c1 + ';color:#fff">' + esc(p.n) + '</span>' +
     '<label for="bf-tx" style="margin-top:10px">النص (تقدري تبدليه قبل ما تصيفطي)</label><textarea id="bf-tx" rows="7" style="font-size:16px;line-height:1.7">' + esc(txt) + '</textarea>' +
-    '<p class="note">ملي تضغطي "صيفط"، كيتحل الواتساب بالنمرة ديال الكليان، والكليان كيتسجل بلي تصيفط ليه.</p>' +
+    '<p class="note">' + (c.tel ? 'ملي تضغطي "صيفط"، كيتحل الواتساب بالنمرة ديال الكليان، والكليان كيتسجل بلي تصيفط ليه.' : 'النمرة ديال هاد الكليان ما مكتوباش فالشيت: ملي تضغطي "صيفط" كيتحل الواتساب، وختاري الكونطاكت ديالو بيدك.') + '</p>' +
     '<button type="button" class="wa big" id="bf-ok">' + ic('send') + 'صيفط فالواتساب</button>');
   $('bf-ok').onclick = function () {
-    window.open(waUrl(c.tel, $('bf-tx').value), '_blank');
+    window.open(c.tel ? waUrl(c.tel, $('bf-tx').value) : 'https://wa.me/?text=' + encodeURIComponent($('bf-tx').value), '_blank');
     c.relance = todayISO(); closeModal(); after();
     call('markRelance', S.token, c.cle, c.nom, c.tel, 'bf').then(function () { S.clientsP = null; }).catch(function () {});
   };
