@@ -401,6 +401,7 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .bfpick{display:flex;flex-direction:column;gap:8px}.bfpick button{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:12px 14px;min-height:60px;font-family:inherit;color:var(--ink);text-align:start}
 .bfpick .bfdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--c1);flex:none;position:relative}.bfpick button.on{border:2px solid var(--c1);box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 20%,transparent)}.bfpick button.on .bfdot::after{content:"";position:absolute;inset:4px;border-radius:50%;background:linear-gradient(120deg,var(--c1),var(--c2))}
 .bfpn{flex:1;display:flex;flex-direction:column;min-width:0}.bfpn b{font-size:15px}.bfpn small{font-size:12px;color:var(--muted)}.bfpp{display:flex;flex-direction:column;align-items:flex-end}.bfpp b{white-space:nowrap}.bfpp s{font-size:12px;color:var(--muted);white-space:nowrap}
+.bffit{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:#16A34A;border-radius:999px;padding:2px 8px;margin-inline-start:6px;vertical-align:middle}
 .bfnotel{color:#D97706;font-weight:700}
 .bfcomfix{background:linear-gradient(120deg,var(--c1),var(--c2));color:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px}.bfcomfix span{font-family:Anton,Impact,sans-serif;font-size:18px;letter-spacing:1px}.bfcomfix b{font-size:20px}.bfcomfix strong{font-size:22px}
 </style>
@@ -1766,13 +1767,18 @@ setInterval(function () { var els = document.querySelectorAll('[data-bfcd]'); if
 function bfVid(c) { return /vid|ugc|hook|montage|فيديو/i.test(c.dernier || ''); }
 // Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), ga3 li 3ndhom nmra (bla limite dyal l woqt).
 function bfBuckets(all) {
-  var B = { up7: [], p950: [], sem2: [], big: [], ret: [], ref: [] };
+  // Kol client kaybane f ga3 l3orod: li mnasbin l dak l3ard kaybanu lowlin (b « مناسب »), mn ba3d l b9iya.
+  var K = ['up7', 'p950', 'sem2', 'big', 'ret'], B = { ref: [], fit: {} }, el = [];
   (all || []).forEach(function (c) {
     if (!c.tel || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
     var b = c.lastPrix >= 1500 && c.lastJ >= 6 ? 'big' : c.n >= 2 && c.lastJ >= 5 && !bfVid(c) ? 'sem2' : bfVid(c) ? 'p950' : c.lastJ && c.lastJ <= 5 ? 'up7' : 'ret';
-    B[b].push(c); B.ref.push(c);
+    B.fit[c.cle || c.nom] = b; el.push(c);
   });
-  Object.keys(B).forEach(function (k) { B[k].sort(function (a, b) { return a.since - b.since; }); });
+  el.sort(function (a, b) { return a.since - b.since; });
+  K.forEach(function (k) {
+    B[k] = el.filter(function (c) { return B.fit[c.cle || c.nom] === k; }).concat(el.filter(function (c) { return B.fit[c.cle || c.nom] !== k; }));
+  });
+  B.ref = el.slice();
   return B;
 }
 function bfList(B, id) { var p = bfPack(id); return p && p.big ? B.big : (B[id] || []); }
@@ -1807,7 +1813,7 @@ function vBfo() {
   show(loading());
   loadClients().then(function (all) {
     if (S.view !== 'bfo') return;
-    var L = bfList(bfBuckets(all), p.id), f = S.bfF || 'all';
+    var BB = bfBuckets(all), L = bfList(BB, p.id), f = S.bfF || 'all', bfFitMap = BB.fit, bfFit = p.big ? 'big' : p.id;
     var draw = function () {
       var sent = L.filter(bfSent).length, rows = L.filter(function (c) { return f === 'all' || (f === 'sent' ? bfSent(c) : !bfSent(c)); });
       show('<div class="bfo-h" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><button type="button" class="bfback" id="bf-back">← العروض</button><b>' + esc(p.n) + '</b><span>' + (p.p ? n0(p.p) + ' درهم بلاصة ' + n0(p.o) + ' · ' : '') + 'الكوميسيون ديالك ' + (p.ref ? 'عادية' : p.com + ' درهم') + '</span>' + bfCd(true) + '</div>' +
@@ -1815,7 +1821,7 @@ function vBfo() {
         (p.big ? '<div class="note">ختاري الباك على حسب البيدجي اللي كيطلق الكليان فالنهار (15 ولا 20 دولار) والوتيرة ديالو.</div>' : '') + '</div>' +
         chips('bff', [['all', 'الكل (' + L.length + ')'], ['left', 'باقي (' + (L.length - sent) + ')'], ['sent', 'تصيفطو (' + sent + ')']], f) +
         '<div class="bfrows">' + (rows.length ? rows.map(function (c) { var i = L.indexOf(c);
-          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + '</b><span>آخر كوموند: ' + esc(c.dernier || '') + ' · ' + n0(c.lastPrix) + ' درهم</span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند' + (c.tel ? '' : ' · <b class="bfnotel">ما كايناش النمرة</b>') + '</small></div>' +
+          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + (bfFit === (p.big ? 'big' : p.id) && bfFitMap[c.cle || c.nom] === bfFit ? ' <em class="bffit">مناسب</em>' : '') + '</b><span>آخر كوموند: ' + n0(c.lastPrix) + ' درهم · <bdi dir="ltr">' + esc(c.dernier || '') + '</bdi></span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند' + (c.tel ? '' : ' · <b class="bfnotel">ما كايناش النمرة</b>') + '</small></div>' +
             (bfSent(c) ? '<span class="bfok">تصيفط ✓</span>' : '<button type="button" class="bfsend" data-i="' + i + '">' + ic('send') + 'صيفط</button>') + '</div>'; }).join('') : '<div class="panel empty">ما كاين حتى كليان هنا.</div>') + '</div>');
       $('bf-back').onclick = function () { go('bf'); };
       bindChips('bff', function (x) { f = S.bfF = x; draw(); });
