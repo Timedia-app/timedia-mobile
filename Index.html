@@ -1764,11 +1764,11 @@ function bfCd(small) { var L = bfLeft(), lab = ['أيام', 'ساعات', 'دق�
   return '<div class="bfcd' + (small ? ' sm' : '') + '" dir="ltr">' + L.map(function (v, i) { return '<span class="' + (i === 3 ? 'on' : '') + '"><b data-bfcd="' + i + '">' + v + '</b><i>' + lab[i] + '</i></span>'; }).join('') + '</div>'; }
 setInterval(function () { var els = document.querySelectorAll('[data-bfcd]'); if (!els.length || !S.refs || !S.refs.bf) return; var L = bfLeft(); Array.prototype.forEach.call(els, function (e) { e.textContent = L[+e.dataset.bfcd]; }); }, 1000);
 function bfVid(c) { return /vid|ugc|hook|montage|فيديو/i.test(c.dernier || ''); }
-// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), akhir commande ≤ 3 chhor (≤ 6 chhor ila kay3awd). Bla nmra: WhatsApp kay7el w hiya katkhtar l contact.
+// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), akhir commande ≤ 3 chhor (≤ 6 chhor ila kay3awd). Ghir li 3ndhom nmra.
 function bfBuckets(all) {
   var B = { up7: [], p950: [], sem2: [], big: [], ret: [], ref: [] };
   (all || []).forEach(function (c) {
-    if (c.since > (c.n >= 2 ? 180 : 90) || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
+    if (!c.tel || c.since > (c.n >= 2 ? 180 : 90) || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
     var b = c.lastPrix >= 1500 && c.lastJ >= 6 ? 'big' : c.n >= 2 && c.lastJ >= 5 && !bfVid(c) ? 'sem2' : bfVid(c) ? 'p950' : c.lastJ && c.lastJ <= 5 ? 'up7' : 'ret';
     B[b].push(c); B.ref.push(c);
   });
