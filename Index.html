@@ -1060,11 +1060,11 @@ function wizRender(err) {
     '<label style="margin-top:14px">' + t('Date de la commande') + '<input id="w-dt" type="date" max="' + todayISO() + '" value="' + esc(W.date || todayISO()) + '"></label>' +
     (W.edit ? '<div class="tagok">✏️ ' + t('Modification d\'une commande existante') + '</div>' : '');
   if (k === 'tel') h = '<h2>' + t('Téléphone du client') + '</h2><input id="w-tel" inputmode="tel" placeholder="06 00 00 00 00" dir="ltr" value="' + esc(W.tel || '') + '"><p class="note">' + t('Obligatoire : il sert aux relances et à l\'envoi des offres.') + '</p>';
-  if (k === 'type') h = '<h2>نوع الكوموند</h2><div class="bftype" id="w-ty"><button type="button" data-v="n" class="' + (W.bfMode ? '' : 'on') + '"><b>باك عادي</b><span>Pack 950 ولا الخدمات بوحدهم بحال ديما</span></button>' +
+  if (k === 'type') h = '<h2>نوع الكوموند</h2><div class="bftype" id="w-ty"><button type="button" data-v="n" class="' + (W.bfMode ? '' : 'on') + '"><b>باك عادي</b><span>باك 950 ولا الخدمات بوحدهم بحال ديما</span></button>' +
     '<button type="button" data-v="b" class="bf' + (W.bfMode ? ' on' : '') + '"><b dir="ltr">BLACK FRIDAY</b><span>العروض حتى 30 نونبر</span></button></div>';
-  if (k === 'bfp') h = '<h2>ختاري الباك ديال Black Friday</h2><div class="bfpick" id="w-bfp">' + S.refs.bf.packs.filter(function (p) { return !p.ref; }).map(function (p) {
-    return '<button type="button" data-id="' + p.id + '" class="' + (W.bf === p.id ? 'on' : '') + '" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><span class="bfdot"></span><span class="bfpn"><b>' + esc(p.n) + '</b><small>الكوميسيون ' + p.com + ' DH · ' + esc(p.inc.join(' · ')) + '</small></span><span class="bfpp"><b>' + n0(p.p) + ' DH</b><s>' + n0(p.o) + ' DH</s></span></button>'; }).join('') + '</div>' +
-    '<p class="note">الثمن والكوميسيون كيتكتبو بوحدهم. فالخطوات الجاية تقدري تكملي التفاصيل (الفيديو، الأدس…).</p>';
+  if (k === 'bfp') h = '<h2>ختاري الباك ديال البلاك فرايداي</h2><div class="bfpick" id="w-bfp">' + S.refs.bf.packs.filter(function (p) { return !p.ref; }).map(function (p) {
+    return '<button type="button" data-id="' + p.id + '" class="' + (W.bf === p.id ? 'on' : '') + '" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><span class="bfdot"></span><span class="bfpn"><b>' + esc(p.n) + '</b><small>الكوميسيون ' + p.com + ' درهم · ' + esc(p.inc.join(' · ')) + '</small></span><span class="bfpp"><b>' + n0(p.p) + ' درهم</b><s>' + n0(p.o) + ' درهم</s></span></button>'; }).join('') + '</div>' +
+    '<p class="note">الثمن والكوميسيون كيتكتبو بوحدهم. فالخطوات الجاية تقدري تكملي التفاصيل (الفيديو، الإشهار…).</p>';
   if (k === 'items') h = '<h2>' + t('Contenu de la commande') + '</h2><div class="svhint">✓ ' + t('Vous pouvez choisir plusieurs services. Touchez une carte pour la choisir, touchez-la encore pour l\'enlever.') + '</div>' + itemCards(W);
   if (k === 'ads') h = '<h2>' + t('Publicité (Ads)') + '</h2><label>' + t('Nombre de jours') + '<input id="w-j" type="number" min="1" inputmode="numeric" value="' + esc(W.jours) + '"></label>' +
     chipSel('w-jc', [['3', '3 j'], ['5', '5 j'], ['7', '7 j'], ['10', '10 j'], ['15', '15 j'], ['30', '30 j']], String(W.jours)) +
@@ -1275,7 +1275,7 @@ function wizPayload(W) {
 /* ---------- commission: m7soba 9bel l'envoi, saler katconfirmi wla katbeddel b sabab ---------- */
 function comDetail(W) {
   var bp = W.bf ? bfPack(W.bf) : null;
-  if (bp) return '<div class="bfcomfix" style="--c1:' + bp.c1 + ';--c2:' + bp.c2 + '"><span dir="ltr">BLACK FRIDAY</span><b>' + esc(bp.n) + '</b><div>الكوميسيون ديالك: <strong>' + bp.com + ' DH</strong></div><small>الثمن ديال هاد الباك هو ' + n0(bp.p) + ' DH.</small></div>';
+  if (bp) return '<div class="bfcomfix" style="--c1:' + bp.c1 + ';--c2:' + bp.c2 + '"><span dir="ltr">BLACK FRIDAY</span><b>' + esc(bp.n) + '</b><div>الكوميسيون ديالك: <strong>' + bp.com + ' درهم</strong></div><small>الثمن ديال هاد الباك هو ' + n0(bp.p) + ' درهم.</small></div>';
   if (!W.com) {
     var lc = S.role === 'saler' ? localCom(wizPayload(W)) : null;
     if (lc && !navigator.onLine) { W.com = lc; return comDetail(W); }
@@ -1764,11 +1764,11 @@ function bfCd(small) { var L = bfLeft(), lab = ['أيام', 'ساعات', 'دق�
   return '<div class="bfcd' + (small ? ' sm' : '') + '" dir="ltr">' + L.map(function (v, i) { return '<span class="' + (i === 3 ? 'on' : '') + '"><b data-bfcd="' + i + '">' + v + '</b><i>' + lab[i] + '</i></span>'; }).join('') + '</div>'; }
 setInterval(function () { var els = document.querySelectorAll('[data-bfcd]'); if (!els.length || !S.refs || !S.refs.bf) return; var L = bfLeft(); Array.prototype.forEach.call(els, function (e) { e.textContent = L[+e.dataset.bfcd]; }); }, 1000);
 function bfVid(c) { return /vid|ugc|hook|montage|فيديو/i.test(c.dernier || ''); }
-// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), akhir commande ≤ 3 chhor (≤ 6 chhor ila kay3awd). Ghir li 3ndhom nmra.
+// Kol client f 3ard wa7d (li kayna9so): l projet dyalo sala (wla ghadi ysali f 2 ayam), ga3 li 3ndhom nmra (bla limite dyal l woqt).
 function bfBuckets(all) {
   var B = { up7: [], p950: [], sem2: [], big: [], ret: [], ref: [] };
   (all || []).forEach(function (c) {
-    if (!c.tel || c.since > (c.n >= 2 ? 180 : 90) || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
+    if (!c.tel || c.since < Math.max(3, (c.lastJ || 3) - 2)) return;
     var b = c.lastPrix >= 1500 && c.lastJ >= 6 ? 'big' : c.n >= 2 && c.lastJ >= 5 && !bfVid(c) ? 'sem2' : bfVid(c) ? 'p950' : c.lastJ && c.lastJ <= 5 ? 'up7' : 'ret';
     B[b].push(c); B.ref.push(c);
   });
@@ -1778,21 +1778,21 @@ function bfBuckets(all) {
 function bfList(B, id) { var p = bfPack(id); return p && p.big ? B.big : (B[id] || []); }
 function bfSent(c) { return !!(c.relance && c.relance >= '2026-11-21'); }
 function bfBanner(n) {
-  return '<button type="button" class="bfban" id="h-bf"><span class="bfb-top"><span dir="ltr" class="bfw">BLACK <em>FRIDAY</em></span><span class="bfpct">حتى -25%</span></span>' +
+  return '<button type="button" class="bfban" id="h-bf"><span class="bfb-top"><span dir="ltr" class="bfw">BLACK <em>FRIDAY</em></span><span class="bfpct">تخفيض حتى <bdi dir="ltr">25%</bdi></span></span>' +
     '<span class="bfb-sub">' + (S.refs.bf.packs.length) + ' ديال العروض' + (n !== undefined ? ' · ' + n + ' كليان مهتمين عندك' : '') + '</span>' + bfCd(true) + '<span class="bfb-go">شوف العروض ←</span></button>';
 }
 function vBf() {
   var draw = function (all) {
     var B = bfBuckets(all), chk = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-    show('<div class="bfpage"><div class="bfhero"><div class="bftags"><span class="bfpct">حتى -25%</span><span class="bfdate">27 → 30 نونبر</span></div>' +
-      '<div dir="ltr" class="bfw big">BLACK<br><em>FRIDAY</em></div><div class="bfsub">العروض ديال TIMEDIA — غير لهاد الأيام</div>' +
-      '<div class="bflab">العرض كيسالي من بعد:</div>' + bfCd(false) + '<div class="bfend">آخر أجل: الاثنين 30 نونبر مع 23:59</div></div>' +
+    show('<div class="bfpage"><div class="bfhero"><div class="bftags"><span class="bfpct">تخفيض حتى <bdi dir="ltr">25%</bdi></span><span class="bfdate">27 → 30 نونبر</span></div>' +
+      '<div dir="ltr" class="bfw big">BLACK<br><em>FRIDAY</em></div><div class="bfsub">العروض ديال <bdi>TIMEDIA</bdi> غير لهاد الأيام</div>' +
+      '<div class="bflab">العرض كيسالي من بعد:</div>' + bfCd(false) + '<div class="bfend">آخر أجل: الاثنين 30 نونبر مع <bdi dir="ltr">23:59</bdi></div></div>' +
       '<div class="bfcards">' + S.refs.bf.packs.map(function (p) {
         var L = bfList(B, p.id), n = L.length, left = L.filter(function (c) { return !bfSent(c); }).length;
-        return '<div class="bfc" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><div class="bfc-h"><div><b>' + esc(p.n) + '</b><span>' + esc(p.pour) + '</span></div><em>' + esc(p.off) + '</em></div>' +
-          '<div class="bfc-b"><div class="bfprice"><b>' + (p.p ? n0(p.p) + ' DH' : 'فابور') + '</b>' + (p.o ? '<s>' + n0(p.o) + ' DH</s>' : '') + '<span>' + esc(p.save) + '</span></div>' +
+        return '<div class="bfc" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><div class="bfc-h"><div><b>' + esc(p.n) + '</b><span>' + esc(p.pour) + '</span></div><em dir="ltr">' + esc(p.off) + '</em></div>' +
+          '<div class="bfc-b"><div class="bfprice"><b>' + (p.p ? n0(p.p) + ' درهم' : 'فابور') + '</b>' + (p.o ? '<s>' + n0(p.o) + ' درهم</s>' : '') + '<span>' + esc(p.save) + '</span></div>' +
           '<div class="bfinc">' + p.inc.map(function (x) { return '<div>' + chk + esc(x) + '</div>'; }).join('') + '</div>' +
-          '<div class="bfcom"><span>الكوميسيون ديالك</span><b>' + (p.ref ? 'عادية' : p.com + ' DH') + '</b></div><div class="bfnote">' + esc(p.note) + '</div>' +
+          '<div class="bfcom"><span>الكوميسيون ديالك</span><b>' + (p.ref ? 'عادية' : p.com + ' درهم') + '</b></div><div class="bfnote">' + esc(p.note) + '</div>' +
           (n ? '<button type="button" class="bfgo" data-bf="' + p.id + '">شوف الكليان (' + n + ')' + (left < n ? ' · باقي ' + left : '') + ' ←</button>' : '<div class="bfnone">ما عندك حتى كليان لهاد العرض دابا</div>') + '</div></div>';
       }).join('') + '</div></div>');
     document.querySelectorAll('.bfgo').forEach(function (b) { b.onclick = function () { S.bfSel = b.dataset.bf; go('bfo'); }; });
@@ -1810,12 +1810,12 @@ function vBfo() {
     var L = bfList(bfBuckets(all), p.id), f = S.bfF || 'all';
     var draw = function () {
       var sent = L.filter(bfSent).length, rows = L.filter(function (c) { return f === 'all' || (f === 'sent' ? bfSent(c) : !bfSent(c)); });
-      show('<div class="bfo-h" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><button type="button" class="bfback" id="bf-back">← العروض</button><b>' + esc(p.n) + '</b><span>' + (p.p ? n0(p.p) + ' DH بلاصة ' + n0(p.o) + ' · ' : '') + 'الكوميسيون ديالك ' + (p.ref ? 'عادية' : p.com + ' DH') + '</span>' + bfCd(true) + '</div>' +
+      show('<div class="bfo-h" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '"><button type="button" class="bfback" id="bf-back">← العروض</button><b>' + esc(p.n) + '</b><span>' + (p.p ? n0(p.p) + ' درهم بلاصة ' + n0(p.o) + ' · ' : '') + 'الكوميسيون ديالك ' + (p.ref ? 'عادية' : p.com + ' درهم') + '</span>' + bfCd(true) + '</div>' +
         '<div class="panel bfprog"><div class="bfpr"><b>' + L.length + ' كليان مهتمين</b><span>' + sent + ' تصيفطو</span></div><div class="bar"><i style="width:' + (L.length ? sent / L.length * 100 : 0) + '%"></i></div>' +
         (p.big ? '<div class="note">ختاري الباك على حسب البيدجي اللي كيطلق الكليان فالنهار (15 ولا 20 دولار) والوتيرة ديالو.</div>' : '') + '</div>' +
         chips('bff', [['all', 'الكل (' + L.length + ')'], ['left', 'باقي (' + (L.length - sent) + ')'], ['sent', 'تصيفطو (' + sent + ')']], f) +
         '<div class="bfrows">' + (rows.length ? rows.map(function (c) { var i = L.indexOf(c);
-          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + '</b><span>آخر كوموند: ' + esc(c.dernier || '') + ' · ' + n0(c.lastPrix) + ' DH</span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند' + (c.tel ? '' : ' · <b class="bfnotel">ما كايناش النمرة</b>') + '</small></div>' +
+          return '<div class="bfrow"><div class="bfri"><b>' + esc(c.nom) + '</b><span>آخر كوموند: ' + esc(c.dernier || '') + ' · ' + n0(c.lastPrix) + ' درهم</span><small>قبل ' + c.since + ' يوم · ' + c.n + ' كوموند' + (c.tel ? '' : ' · <b class="bfnotel">ما كايناش النمرة</b>') + '</small></div>' +
             (bfSent(c) ? '<span class="bfok">تصيفط ✓</span>' : '<button type="button" class="bfsend" data-i="' + i + '">' + ic('send') + 'صيفط</button>') + '</div>'; }).join('') : '<div class="panel empty">ما كاين حتى كليان هنا.</div>') + '</div>');
       $('bf-back').onclick = function () { go('bf'); };
       bindChips('bff', function (x) { f = S.bfF = x; draw(); });
