@@ -419,11 +419,21 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .rstl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:start;border:1px solid #F3D3D7;background:#FFF5F6;border-radius:12px;padding:10px 12px;margin-top:6px;font:inherit;color:inherit;cursor:pointer}
 .rstl span{font-size:13.5px}.rstl b{white-space:nowrap}.rstl em{grid-column:1/-1;font-style:normal;color:#D7263D;font-weight:700;font-size:12.5px}
 .salc .salh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.salc .salh h2{margin:0;display:flex;align-items:center;gap:8px;font-size:16px}.salc .salh span{font-size:12.5px;color:var(--muted,#6B7280)}
-.saltb{overflow-x:auto;margin:0 -4px}.saltb table{width:100%;border-collapse:collapse;font-size:13px}.saltb th,.saltb td{padding:8px 4px;text-align:end;white-space:nowrap;border-bottom:1px solid var(--line,#E5E7EB)}
-.saltb thead th{font-size:13px;font-weight:800;color:var(--ink,#111827);border-bottom:2px solid #D7263D}.saltb tbody th{text-align:start;font-weight:600;color:var(--muted,#4B5563)}
-.saltb td{font-weight:700;font-variant-numeric:tabular-nums}.saltb td small{font-weight:500;color:var(--muted,#6B7280)}.saltb .tt{background:rgba(215,38,61,.06)}
-.saltb tr.ca td{color:var(--ink,#111827)}.saltb tr.com td{color:#B45309}.saltb tr.net td{color:#15803D;font-size:14px}.saltb tr.net th{color:#15803D;font-weight:800}.saltb tr.roi td{color:#1D4ED8}
-.salnote{margin:10px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted,#6B7280)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.scard{border-radius:20px;overflow:hidden;background:var(--bg);border:1px solid color-mix(in srgb,var(--c1) 22%,transparent)}
+.shd{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff}
+.sav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
+.snm b{display:block;font-size:18px}.snm small{opacity:.92;font-size:12.5px}
+.snet{margin:12px 12px 0;background:#fff;border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;align-items:center;box-shadow:0 6px 16px -12px var(--c1)}
+.snet span{grid-column:1/-1;font-size:12px;font-weight:700;color:#4B5563;text-transform:uppercase;letter-spacing:.3px}.snet b{font-size:28px;font-weight:800;color:#15803D;line-height:1.2}
+.snet em{font-style:normal;font-weight:800;font-size:13px;color:var(--c1);background:var(--bg);padding:5px 10px;border-radius:999px}
+.stls{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 0}
+.stl{background:#fff;border-radius:14px;padding:10px 12px;border-top:3px solid var(--c2)}.stl span{display:block;font-size:11.5px;font-weight:700;color:#6B7280}
+.stl b{display:block;font-size:16px;font-weight:800;color:#111827;margin-top:2px}.stl small{display:block;font-size:11px;color:#6B7280}.stl.com b{color:#B45309}
+.sfid{margin:10px 12px 12px;background:#fff;border-radius:14px;padding:10px 12px}.sfh{display:flex;justify-content:space-between;font-size:12.5px}.sfh span{font-weight:700;color:#6B7280}.sfh b{color:var(--c1)}
+.sbar{height:8px;border-radius:99px;background:var(--bg);margin-top:7px;overflow:hidden}.sbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2))}
+.sest{margin:-4px 14px 12px;font-size:11px;color:#6B7280}
+.stot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;border-radius:16px;background:#111827;color:#fff;text-align:center}.stot span{display:block;font-size:11px;opacity:.75}.stot b{font-size:14.5px}
 </style>
 </head>
 <body>
@@ -2175,31 +2185,37 @@ function vDash() {
 function salCard(mois) { return '<div class="panel salc"><div class="salh"><h2>' + ic('users') + ' Situation des conseillères</h2><span>' + esc(moisLabel(mois)) + '</span></div><div id="d-sal">' + loading() + '</div></div>'; }
 function salLoad(mois) {
   var k = 'sst_' + mois;
+  var PAL = [['#7C3AED', '#A855F7', '#F5F3FF'], ['#0F766E', '#14B8A6', '#F0FDFA'], ['#C2410C', '#F97316', '#FFF7ED'], ['#1D4ED8', '#3B82F6', '#EFF6FF']];
+  var COL = { salwa: 0, ilham: 1 };
   var draw = function (r) {
     var e = $('d-sal'); if (!e) return;
     var L = (r && r.salers) || [];
     if (!L.length) { e.innerHTML = '<p class="muted">Aucune commande ce mois-ci.</p>'; return; }
-    var T = { n: 'Total', cmd: 0, ca: 0, prod: 0, ads: 0, com: 0, net: 0, fid: 0, nouv: 0, estime: 0 };
-    L.forEach(function (s) { ['cmd', 'ca', 'prod', 'ads', 'com', 'net', 'fid', 'nouv', 'estime'].forEach(function (f) { T[f] += s[f] || 0; }); });
-    T.roi = (T.prod + T.ads + T.com) ? T.net / (T.prod + T.ads + T.com) : 0;
-    var C = L.concat(L.length > 1 ? [T] : []);
-    var pct = function (x) { return Math.round(x * 100) + ' %'; };
-    var row = function (lab, f, cls) { return '<tr class="' + (cls || '') + '"><th>' + lab + '</th>' + C.map(function (s, i) { return '<td' + (i === L.length ? ' class="tt"' : '') + '>' + f(s) + '</td>'; }).join('') + '</tr>'; };
-    e.innerHTML = '<div class="saltb"><table><thead><tr><th></th>' + C.map(function (s, i) { return '<th' + (i === L.length ? ' class="tt"' : '') + '>' + esc(s.n) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      row('Commandes', function (s) { return n0(s.cmd); }) +
-      row('CA', function (s) { return n0(s.ca); }, 'ca') +
-      row('Coût prod.', function (s) { return n0(s.prod); }) +
-      row('Ads acquis.', function (s) { return n0(s.ads); }) +
-      row('Commission', function (s) { return n0(s.com); }, 'com') +
-      row('Net', function (s) { return n0(s.net); }, 'net') +
-      row('ROI', function (s) { return pct(s.roi); }, 'roi') +
-      row('Fidèles', function (s) { return n0(s.fid) + ' <small>/ ' + n0(s.cmd) + '</small>'; }) +
-      '</tbody></table></div><p class="salnote">Montants en DH · Coût prod. = ads clients + vidéo + media buyer · Ads acquis. = pub TIMEDIA pour la conseillère · Fidèles = commandes de clients déjà venus · ROI = net / (coûts + commission)' +
-      (T.estime ? ' · ≈ ' + T.estime + ' commande(s) ancienne(s) au coût estimé' : '') + '</p>';
+    var T = { cmd: 0, ca: 0, net: 0, com: 0 };
+    L.forEach(function (s) { T.cmd += s.cmd; T.ca += s.ca; T.net += s.net; T.com += s.com; });
+    var used = {};
+    e.innerHTML = '<div class="sgrid">' + L.map(function (s, i) {
+      var ci = COL[String(s.n).toLowerCase()]; if (ci === undefined || used[ci]) { ci = 2; while (used[ci]) ci++; } used[ci] = 1;
+      var P = PAL[ci % PAL.length], fp = s.cmd ? Math.round(s.fid / s.cmd * 100) : 0, part = T.net ? Math.round(s.net / T.net * 100) : 0;
+      var tile = function (lab, val, sub, cls) { return '<div class="stl' + (cls ? ' ' + cls : '') + '"><span>' + lab + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
+      return '<div class="scard" style="--c1:' + P[0] + ';--c2:' + P[1] + ';--bg:' + P[2] + '">' +
+        '<div class="shd"><div class="sav">' + esc(String(s.n).charAt(0)) + '</div><div class="snm"><b>' + esc(s.n) + '</b><small>' + n0(s.cmd) + ' commandes · ' + part + ' % du bénéfice</small></div></div>' +
+        '<div class="snet"><span>Bénéfice net</span><b>' + dh(s.net) + '</b><em>ROI ' + Math.round(s.roi * 100) + ' %</em></div>' +
+        '<div class="stls">' +
+          tile('Chiffre d\'affaires', dh(s.ca), '') +
+          tile('Commission', dh(s.com), s.ca ? Math.round(s.com / s.ca * 100) + ' % du CA' : '', 'com') +
+          tile('Coût production', dh(s.prod), 'ads clients + vidéo + MB') +
+          tile('Ads acquisition', dh(s.ads), 'pub TIMEDIA') +
+        '</div>' +
+        '<div class="sfid"><div class="sfh"><span>Clients fidèles</span><b>' + n0(s.fid) + ' / ' + n0(s.cmd) + ' · ' + fp + ' %</b></div><div class="sbar"><i style="width:' + fp + '%"></i></div></div>' +
+        (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) ancienne(s) au coût estimé</p>' : '') +
+      '</div>';
+    }).join('') + '</div>' +
+    (L.length > 1 ? '<div class="stot"><div><span>Total commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Net total</span><b>' + dh(T.net) + '</b></div></div>' : '');
   };
   try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
   call('sellerStats', S.token, mois).then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
-    .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('table')) e.innerHTML = errBox(er); });
+    .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('.sgrid')) e.innerHTML = errBox(er); });
 }
 var TILE_C = { adsday: 'c-blue', perso: 'c-purple', mzkia: 'c-green', fam9: 'c-pink', teamch: 'c-teal', detail: 'c-red', relances: 'c-amber', rapport: 'c-slate' };
 /* ---- Rythme dyal chhar: CA/jour, bénéfice/jour, virements/jour, ROAS, ROI, vs chhar li fat ---- */
