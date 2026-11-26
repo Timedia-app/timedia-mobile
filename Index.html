@@ -418,6 +418,12 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .rstn{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.rstn b{font-size:15.5px}.rstn span{color:#D7263D;font-weight:800;white-space:nowrap}
 .rstl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:start;border:1px solid #F3D3D7;background:#FFF5F6;border-radius:12px;padding:10px 12px;margin-top:6px;font:inherit;color:inherit;cursor:pointer}
 .rstl span{font-size:13.5px}.rstl b{white-space:nowrap}.rstl em{grid-column:1/-1;font-style:normal;color:#D7263D;font-weight:700;font-size:12.5px}
+.salc .salh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.salc .salh h2{margin:0;display:flex;align-items:center;gap:8px;font-size:16px}.salc .salh span{font-size:12.5px;color:var(--muted,#6B7280)}
+.saltb{overflow-x:auto;margin:0 -4px}.saltb table{width:100%;border-collapse:collapse;font-size:13px}.saltb th,.saltb td{padding:8px 4px;text-align:end;white-space:nowrap;border-bottom:1px solid var(--line,#E5E7EB)}
+.saltb thead th{font-size:13px;font-weight:800;color:var(--ink,#111827);border-bottom:2px solid #D7263D}.saltb tbody th{text-align:start;font-weight:600;color:var(--muted,#4B5563)}
+.saltb td{font-weight:700;font-variant-numeric:tabular-nums}.saltb td small{font-weight:500;color:var(--muted,#6B7280)}.saltb .tt{background:rgba(215,38,61,.06)}
+.saltb tr.ca td{color:var(--ink,#111827)}.saltb tr.com td{color:#B45309}.saltb tr.net td{color:#15803D;font-size:14px}.saltb tr.net th{color:#15803D;font-weight:800}.saltb tr.roi td{color:#1D4ED8}
+.salnote{margin:10px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted,#6B7280)}
 </style>
 </head>
 <body>
@@ -2145,7 +2151,7 @@ function vDash() {
     var teamPaid = (m.mbP || 0) + (m.vidP || 0) + comPaidT;
     var tile = function (id, icon, lab, val, sub, cls) { return '<button type="button" class="ht ' + (TILE_C[id] || '') + (cls ? ' ' + cls : '') + '" data-go="' + id + '"><span class="hti">' + ic(icon) + '</span><span class="htl">' + lab + '</span><b class="htv">' + val + '</b><small>' + sub + '</small></button>'; };
     show('<div class="welcome"><div style="min-width:0;flex:1"><div class="hi">' + esc(greet()) + '</div><div class="hm">' + t('Voici l\'activité de TIMEDIA') + '</div></div>' + moisPicker() + '</div>' +
-      moneyBoard(m, kCmd) + chartCard() + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
+      moneyBoard(m, kCmd) + salCard(m.mois) + chartCard() + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
       '<div class="htiles">' +
         tile('adsday', 'mega', t('Ads du jour'), dh(isCur ? dayAds(d, today) : m.adsT), isCur ? t('Mois : {v}', { v: dh(m.adsT) }) : t('Total du mois')) +
         tile('perso', 'wallet', t('Charges perso'), '…', t('Lecture du Google Sheet…')) +
@@ -2160,9 +2166,40 @@ function vDash() {
     bindMois(vDash);
     loadHist(d); drawGraph(d); bindChips('gv', function (x) { S.gv = x; drawGraph(d); });
     suiviTiles(m.mois);
+    salLoad(m.mois);
     relTile();
     persoTile(m.mois);
   });
+}
+// V67: Situation des conseillères (admin): commandes, CA, coûts, commission, net, ROI, fidèles.
+function salCard(mois) { return '<div class="panel salc"><div class="salh"><h2>' + ic('users') + ' Situation des conseillères</h2><span>' + esc(moisLabel(mois)) + '</span></div><div id="d-sal">' + loading() + '</div></div>'; }
+function salLoad(mois) {
+  var k = 'sst_' + mois;
+  var draw = function (r) {
+    var e = $('d-sal'); if (!e) return;
+    var L = (r && r.salers) || [];
+    if (!L.length) { e.innerHTML = '<p class="muted">Aucune commande ce mois-ci.</p>'; return; }
+    var T = { n: 'Total', cmd: 0, ca: 0, prod: 0, ads: 0, com: 0, net: 0, fid: 0, nouv: 0, estime: 0 };
+    L.forEach(function (s) { ['cmd', 'ca', 'prod', 'ads', 'com', 'net', 'fid', 'nouv', 'estime'].forEach(function (f) { T[f] += s[f] || 0; }); });
+    T.roi = (T.prod + T.ads + T.com) ? T.net / (T.prod + T.ads + T.com) : 0;
+    var C = L.concat(L.length > 1 ? [T] : []);
+    var pct = function (x) { return Math.round(x * 100) + ' %'; };
+    var row = function (lab, f, cls) { return '<tr class="' + (cls || '') + '"><th>' + lab + '</th>' + C.map(function (s, i) { return '<td' + (i === L.length ? ' class="tt"' : '') + '>' + f(s) + '</td>'; }).join('') + '</tr>'; };
+    e.innerHTML = '<div class="saltb"><table><thead><tr><th></th>' + C.map(function (s, i) { return '<th' + (i === L.length ? ' class="tt"' : '') + '>' + esc(s.n) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      row('Commandes', function (s) { return n0(s.cmd); }) +
+      row('CA', function (s) { return n0(s.ca); }, 'ca') +
+      row('Coût prod.', function (s) { return n0(s.prod); }) +
+      row('Ads acquis.', function (s) { return n0(s.ads); }) +
+      row('Commission', function (s) { return n0(s.com); }, 'com') +
+      row('Net', function (s) { return n0(s.net); }, 'net') +
+      row('ROI', function (s) { return pct(s.roi); }, 'roi') +
+      row('Fidèles', function (s) { return n0(s.fid) + ' <small>/ ' + n0(s.cmd) + '</small>'; }) +
+      '</tbody></table></div><p class="salnote">Montants en DH · Coût prod. = ads clients + vidéo + media buyer · Ads acquis. = pub TIMEDIA pour la conseillère · Fidèles = commandes de clients déjà venus · ROI = net / (coûts + commission)' +
+      (T.estime ? ' · ≈ ' + T.estime + ' commande(s) ancienne(s) au coût estimé' : '') + '</p>';
+  };
+  try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
+  call('sellerStats', S.token, mois).then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
+    .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('table')) e.innerHTML = errBox(er); });
 }
 var TILE_C = { adsday: 'c-blue', perso: 'c-purple', mzkia: 'c-green', fam9: 'c-pink', teamch: 'c-teal', detail: 'c-red', relances: 'c-amber', rapport: 'c-slate' };
 /* ---- Rythme dyal chhar: CA/jour, bénéfice/jour, virements/jour, ROAS, ROI, vs chhar li fat ---- */
