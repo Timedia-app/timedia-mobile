@@ -1729,6 +1729,7 @@ function topBars(L, key, lab) {
   }).join('') + '</details>';
 }
 function vClients() {
+  if (typeof S.cq !== 'string') S.cq = ''; if (!S.cf) S.cf = 'all'; if (S.csal === undefined) S.csal = ''; if (!S.csort) S.csort = 'total';
   show(loading());
   swr('cl', 'getClients', [S.token], function (r) {
     S.clients = r.clients;
@@ -2161,7 +2162,7 @@ function vDash() {
     var teamPaid = (m.mbP || 0) + (m.vidP || 0) + comPaidT;
     var tile = function (id, icon, lab, val, sub, cls) { return '<button type="button" class="ht ' + (TILE_C[id] || '') + (cls ? ' ' + cls : '') + '" data-go="' + id + '"><span class="hti">' + ic(icon) + '</span><span class="htl">' + lab + '</span><b class="htv">' + val + '</b><small>' + sub + '</small></button>'; };
     show('<div class="welcome"><div style="min-width:0;flex:1"><div class="hi">' + esc(greet()) + '</div><div class="hm">' + t('Voici l\'activité de TIMEDIA') + '</div></div>' + moisPicker() + '</div>' +
-      moneyBoard(m, kCmd) + salCard(m.mois) + chartCard() + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
+      salCard(m.mois) + moneyBoard(m, kCmd) + chartCard() + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
       '<div class="htiles">' +
         tile('adsday', 'mega', t('Ads du jour'), dh(isCur ? dayAds(d, today) : m.adsT), isCur ? t('Mois : {v}', { v: dh(m.adsT) }) : t('Total du mois')) +
         tile('perso', 'wallet', t('Charges perso'), '…', t('Lecture du Google Sheet…')) +
