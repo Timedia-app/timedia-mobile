@@ -404,6 +404,17 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .bffit{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:#16A34A;border-radius:999px;padding:2px 8px;margin-inline-start:6px;vertical-align:middle}
 .bfnotel{color:#D97706;font-weight:700}
 .bfcomfix{background:linear-gradient(120deg,var(--c1),var(--c2));color:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px}.bfcomfix span{font-family:Anton,Impact,sans-serif;font-size:18px;letter-spacing:1px}.bfcomfix b{font-size:20px}.bfcomfix strong{font-size:22px}
+.rstban{display:flex;align-items:center;gap:12px;width:100%;text-align:start;border:0;border-radius:18px;padding:14px 16px;margin:0 0 14px;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font:inherit;cursor:pointer;box-shadow:0 10px 22px -12px #ea580c}
+.rstban .rbi{width:42px;height:42px;border-radius:12px;background:#ffffff2e;display:grid;place-items:center;flex:none}.rstban .rbi .ic{width:22px;height:22px}
+.rstban .rbt{flex:1;min-width:0}.rstban b{display:block;font-size:16px}.rstban small{display:block;opacity:.9;font-size:12.5px;margin-top:2px}.rstban .rbc{opacity:.8}
+.nch{display:grid;gap:10px;margin-top:6px}.nc{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:start;border-radius:16px;padding:14px;font:inherit;cursor:pointer;border:2px solid var(--line,#e5e7eb);background:var(--card,#fff);color:inherit}
+.nc .nci{grid-row:1/3;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff}.nc b{font-size:16px}.nc small{color:var(--muted,#6b7280);font-size:13px}
+.nc1 .nci{background:var(--brand,#D7263D)}.nc2 .nci{background:#ea580c}.nc2{border-color:#fdba74}
+.rsth{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border-radius:18px;padding:16px;margin-bottom:14px;text-align:center}.rsth span{display:block;opacity:.9;font-size:13px}.rsth b{display:block;font-size:30px;line-height:1.2}.rsth small{opacity:.9}
+.rstc{background:var(--card,#fff);border:1px solid var(--line,#e5e7eb);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.rstn{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.rstn b{font-size:15.5px}.rstn span{color:#ea580c;font-weight:800;white-space:nowrap}
+.rstl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:start;border:1px solid #fed7aa;background:#fff7ed;border-radius:12px;padding:10px 12px;margin-top:6px;font:inherit;color:inherit;cursor:pointer}
+.rstl span{font-size:13.5px}.rstl b{white-space:nowrap}.rstl em{grid-column:1/-1;font-style:normal;color:#c2410c;font-weight:700;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -751,11 +762,11 @@ function exitViewAs() {
 }
 function go(v, fromPop) {
   closeModal();
-  if (v === 'new') return openNew();
+  if (v === 'new') return S.role === 'saler' ? newChooser() : openNew();
   if (!fromPop && v !== S.view) { try { if (history.state && history.state.m) history.replaceState({ v: v }, ''); else history.pushState({ v: v }, ''); } catch (e) {} }
   S.view = v; navTok();
   Array.prototype.forEach.call($('nav').children, function (b) { b.classList.toggle('on', b.dataset.v === v || (v === 'cmds' || v === 'ads' || v === 'sorties' || v === 'annee' || v === 'salers' || (v === 'ai' && S.role === 'admin') || v === 'activite') && b.dataset.v === 'more' || (v === 'mcmds' || v === 'perf' || v === 'year') && b.dataset.v === 'home' || ['adsday', 'perso', 'mzkia', 'fam9', 'teamch', 'detail'].indexOf(v) >= 0 && b.dataset.v === 'dash'); });
-  ({ ai: vAI, clients: vClients, notifs: vNotifs, home: vHome, dash: vDash, verif: vVerif, cmds: vCmds, ads: vAds, sorties: vSorties, annee: vAnnee, salers: vSalers, more: vMore, account: vAccount, mcmds: vMyCmds, perf: vPerf, year: vYear, activite: vActivite, tous: vAllClients, relances: vRelances, rapport: vCompta, adsday: vAdsDay, perso: vPerso, mzkia: function () { vSuivi('mzkia'); }, fam9: function () { vSuivi('fam9'); }, teamch: vTeamCh, detail: vDetail, bf: vBf, bfo: vBfo })[v]();
+  ({ ai: vAI, clients: vClients, notifs: vNotifs, home: vHome, dash: vDash, verif: vVerif, cmds: vCmds, ads: vAds, sorties: vSorties, annee: vAnnee, salers: vSalers, more: vMore, account: vAccount, mcmds: vMyCmds, perf: vPerf, year: vYear, activite: vActivite, tous: vAllClients, relances: vRelances, rapport: vCompta, adsday: vAdsDay, perso: vPerso, mzkia: function () { vSuivi('mzkia'); }, fam9: function () { vSuivi('fam9'); }, teamch: vTeamCh, detail: vDetail, bf: vBf, bfo: vBfo, restes: vRestes })[v]();
 }
 function refreshHeader() {
   $('hr').innerHTML = '<button class="hb" id="bell" aria-label="' + t('Notifications') + '">' + ic('bell') + '<b id="badge" hidden></b></button>' +
@@ -1407,7 +1418,7 @@ function vHome() {
     var k = sdCalc(d), pctPaid = k.base ? Math.min(100, Math.round(k.paid / k.base * 100)) : 0;
     var STC = { mcmds: 'c-blue', perf: 'c-green', year: 'c-purple', clients: 'c-teal', tous: 'c-orange', script: 'c-indigo', offres: 'c-pink', sat: 'c-amber' };
     var tile = function (id, icon, lab, val, sub) { return '<button type="button" class="ht ' + (STC[id] || 'c-slate') + '" data-go="' + id + '"><span class="hti">' + ic(icon) + '</span><span class="htl">' + lab + '</span>' + (val !== '' ? '<b class="htv">' + val + '</b>' : '') + '<small>' + sub + '</small></button>'; };
-    show('<div class="hgreet"><span>' + esc(greet()) + '</span>' + moisPicker() + '</div>' + qBanner() + (bfOn() ? bfBanner() : '') +
+    show('<div class="hgreet"><span>' + esc(greet()) + '</span>' + moisPicker() + '</div>' + qBanner() + rstBanner(d.restesOuverts) + (bfOn() ? bfBanner() : '') +
       '<div class="comhero money' + (k.base > 0 && k.ba9i <= 0 ? ' done' : '') + '"><div class="ch-l">' + t('Ma commission') + ' · ' + esc(moisLabel(d.mois)) + '</div>' +
         '<div class="ch-v">' + dh(k.base) + '</div>' +
         '<div class="ch-2"><div class="ok"><span>' + t('Déjà perçue') + '</span><b>' + dh(k.paid) + '</b></div><div class="due"><span>' + t('Reste à percevoir') + '</span><b>' + dh(k.ba9i) + '</b></div></div>' +
@@ -1435,6 +1446,7 @@ function vHome() {
         .catch(function (e) { b.disabled = false; b.innerHTML = ic('list') + ' ' + t('Rapport du mois (PDF)'); alert(errMsg(e)); }); };
     $('h-all').onclick = function () { S.cf = 'relance'; go('clients'); };
     if ($('h-bf')) $('h-bf').onclick = function () { go('bf'); };
+    if ($('h-rst')) $('h-rst').onclick = function () { go('restes'); };
     $('h-pay').onclick = function () { payModal(d.mois, k.ba9i); };
     document.querySelectorAll('[data-del]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); var x = a.dataset.del.split('|');
       uiConfirm(t('Supprimer ce paiement ({m} DH) ?', { m: x[1] })).then(function (ok) { if (ok) call('delComPaiement', S.token, x[0], +x[1], d.mois).then(vHome).catch(function (er) { alert(errMsg(er)); }); }); }; });
@@ -1783,6 +1795,49 @@ function bfBuckets(all) {
 }
 function bfList(B, id) { var p = bfPack(id); return p && p.big ? B.big : (B[id] || []); }
 function bfSent(c) { return !!(c.relance && c.relance >= '2026-11-21'); }
+
+// V65: Restes (soldes) — f « + » (kouموند jdida / ريست), f l'accueil, w page « restes » ghir dyal s-saler.
+function rstSum(L) { return L.reduce(function (s, x) { return s + (+x.reste || 0); }, 0); }
+function rstClients(L) { var o = {}; L.forEach(function (x) { o[(x.client || '').trim().toLowerCase()] = 1; }); return Object.keys(o).length; }
+function myRestes() { return (S.restes || []).filter(function (x) { return x.reste > 0 && x.id; }); }
+function restesLoad(cb) {
+  if (S.restes) return cb(myRestes());
+  call('getSalerData', S.token, S.mois).then(function (d) { S.restes = d.restesOuverts || []; cb(myRestes()); }).catch(function () { cb([]); });
+}
+function rstBanner(L) {
+  L = (L || []).filter(function (x) { return x.reste > 0 && x.id; });
+  if (!L.length) return '';
+  return '<button type="button" class="rstban" id="h-rst"><span class="rbi">' + ic('list') + '</span><span class="rbt"><b>باقي عندك ' + dh(rstSum(L)) + ' ديال الريست</b><small>' + rstClients(L) + ' كليان · ' + L.length + ' كوموند · كليكي باش تشوفي شكون</small></span><span class="rbc">' + ic('chev', 'chev') + '</span></button>';
+}
+function newChooser() {
+  modal('<h2>شنو بغيتي تسجلي؟</h2><div class="nch">' +
+    '<button type="button" class="nc nc1" id="nc-new"><span class="nci">' + ic('plus') + '</span><b>كوموند جديدة</b><small>كليان جديد ولا كوموند جديدة</small></button>' +
+    '<button type="button" class="nc nc2" id="nc-rst"><span class="nci">' + ic('list') + '</span><b>خلاص ديال الريست</b><small id="nc-rs">…</small></button></div>');
+  $('nc-new').onclick = function () { closeModal(); openNew(); };
+  $('nc-rst').onclick = function () { closeModal(); go('restes'); };
+  restesLoad(function (L) { var e = $('nc-rs'); if (e) e.textContent = L.length ? rstClients(L) + ' كليان باقي عندهم ' + dh(rstSum(L)) : 'ما كاين حتى ريست باقي'; });
+}
+function vRestes() {
+  var head = backTitle('الريست اللي باقي', 'الكليان ديالك اللي باقي ما خلصوش كاملين');
+  show(head + loading());
+  restesLoad(function (L) {
+    if (S.view !== 'restes') return;
+    var G = {}, order = [];
+    L.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (x) { var k = (x.client || '—').trim(); if (!G[k]) { G[k] = []; order.push(k); } G[k].push(x); });
+    order.sort(function (a, b) { return rstSum(G[b]) - rstSum(G[a]); });
+    show(head + (L.length ? '<div class="rsth"><span>المجموع اللي باقي</span><b>' + dh(rstSum(L)) + '</b><small>' + order.length + ' كليان · ' + L.length + ' كوموند</small></div>' +
+      order.map(function (k) { return '<div class="rstc"><div class="rstn"><b>' + esc(k) + '</b><span>' + dh(rstSum(G[k])) + '</span></div>' +
+        G[k].map(function (x) { return '<button type="button" class="rstl" data-rid="' + esc(x.id) + '"><span>كوموند ' + esc(fd(x.date)) + '</span><b>' + n0(x.reste) + ' DH</b><em>سجلي الخلاص</em></button>'; }).join('') + '</div>'; }).join('')
+      : '<div class="panel empty">ما كاين حتى ريست باقي ✓</div>'));
+    document.querySelectorAll('[data-rid]').forEach(function (b) { b.onclick = function () { openReste(L.filter(function (x) { return x.id === b.dataset.rid; })[0]); }; });
+  });
+}
+function openReste(r) {
+  if (!S.refs || !r) return;
+  openNew();
+  var W = S.wiz; W.pay = 'Reste'; W.client = r.client; W.tel = ''; W.resteId = r.id; W.montant = r.reste; W.k = 'pay';
+  wizRender();
+}
 function bfBanner(n) {
   return '<button type="button" class="bfban" id="h-bf"><span class="bfb-top"><span dir="ltr" class="bfw">BLACK <em>FRIDAY</em></span><span class="bfpct">تخفيض حتى <bdi dir="ltr">25%</bdi></span></span>' +
     '<span class="bfb-sub">' + (S.refs.bf.packs.length) + ' ديال العروض' + (n !== undefined ? ' · ' + n + ' كليان مهتمين عندك' : '') + '</span>' + bfCd(true) + '<span class="bfb-go">شوف العروض ←</span></button>';
