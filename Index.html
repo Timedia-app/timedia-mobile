@@ -434,6 +434,9 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .sbar{height:8px;border-radius:99px;background:var(--bg);margin-top:7px;overflow:hidden}.sbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2))}
 .sest{margin:-4px 14px 12px;font-size:11px;color:#6B7280}
 .stot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;border-radius:16px;background:#111827;color:#fff;text-align:center}.stot span{display:block;font-size:11px;opacity:.75}.stot b{font-size:14.5px}
+.stabs{display:flex;gap:8px;margin-bottom:12px}.stab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:14px;border:2px solid var(--line,#E5E7EB);background:var(--card,#fff);color:var(--ink,#111827);font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+.stab i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--c1);color:#fff;font-size:13px}.stab.on{background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;border-color:transparent;box-shadow:0 8px 18px -12px var(--c1)}.stab.on i{background:rgba(255,255,255,.25)}
+.scard.hid{display:none}.sgrid{grid-template-columns:1fr!important}
 </style>
 </head>
 <body>
@@ -2162,7 +2165,7 @@ function vDash() {
     var teamPaid = (m.mbP || 0) + (m.vidP || 0) + comPaidT;
     var tile = function (id, icon, lab, val, sub, cls) { return '<button type="button" class="ht ' + (TILE_C[id] || '') + (cls ? ' ' + cls : '') + '" data-go="' + id + '"><span class="hti">' + ic(icon) + '</span><span class="htl">' + lab + '</span><b class="htv">' + val + '</b><small>' + sub + '</small></button>'; };
     show('<div class="welcome"><div style="min-width:0;flex:1"><div class="hi">' + esc(greet()) + '</div><div class="hm">' + t('Voici l\'activité de TIMEDIA') + '</div></div>' + moisPicker() + '</div>' +
-      salCard(m.mois) + moneyBoard(m, kCmd) + chartCard() + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
+      moneyBoard(m, kCmd) + chartCard() + salCard(m.mois) + forecastCard(d, kCmd) + paceCard(d, kCmd) + splitCard(m) +
       '<div class="htiles">' +
         tile('adsday', 'mega', t('Ads du jour'), dh(isCur ? dayAds(d, today) : m.adsT), isCur ? t('Mois : {v}', { v: dh(m.adsT) }) : t('Total du mois')) +
         tile('perso', 'wallet', t('Charges perso'), '…', t('Lecture du Google Sheet…')) +
@@ -2195,11 +2198,13 @@ function salLoad(mois) {
     var T = { cmd: 0, ca: 0, net: 0, com: 0 };
     L.forEach(function (s) { T.cmd += s.cmd; T.ca += s.ca; T.net += s.net; T.com += s.com; });
     var used = {};
-    e.innerHTML = '<div class="sgrid">' + L.map(function (s, i) {
+    if (!L.some(function (s) { return s.n === S.salTab; })) S.salTab = L[0].n;
+    var tabs = '<div class="stabs">' + L.map(function (s) { var ci = COL[String(s.n).toLowerCase()]; var P = PAL[(ci === undefined ? 2 : ci) % PAL.length]; return '<button type="button" class="stab' + (s.n === S.salTab ? ' on' : '') + '" data-st="' + esc(s.n) + '" style="--c1:' + P[0] + ';--c2:' + P[1] + '"><i>' + esc(String(s.n).charAt(0)) + '</i>' + esc(s.n) + '</button>'; }).join('') + '</div>';
+    e.innerHTML = tabs + '<div class="sgrid">' + L.map(function (s, i) {
       var ci = COL[String(s.n).toLowerCase()]; if (ci === undefined || used[ci]) { ci = 2; while (used[ci]) ci++; } used[ci] = 1;
       var P = PAL[ci % PAL.length], fp = s.cmd ? Math.round(s.fid / s.cmd * 100) : 0, part = T.net ? Math.round(s.net / T.net * 100) : 0;
       var tile = function (lab, val, sub, cls) { return '<div class="stl' + (cls ? ' ' + cls : '') + '"><span>' + lab + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
-      return '<div class="scard" style="--c1:' + P[0] + ';--c2:' + P[1] + ';--bg:' + P[2] + '">' +
+      return '<div class="scard' + (s.n === S.salTab ? '' : ' hid') + '" style="--c1:' + P[0] + ';--c2:' + P[1] + ';--bg:' + P[2] + '">' +
         '<div class="shd"><div class="sav">' + esc(String(s.n).charAt(0)) + '</div><div class="snm"><b>' + esc(s.n) + '</b><small>' + n0(s.cmd) + ' commandes · ' + part + ' % du bénéfice</small></div></div>' +
         '<div class="snet"><span>Bénéfice net</span><b>' + dh(s.net) + '</b><em>ROI ' + Math.round(s.roi * 100) + ' %</em></div>' +
         '<div class="stls">' +
@@ -2213,6 +2218,7 @@ function salLoad(mois) {
       '</div>';
     }).join('') + '</div>' +
     (L.length > 1 ? '<div class="stot"><div><span>Total commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Net total</span><b>' + dh(T.net) + '</b></div></div>' : '');
+    e.querySelectorAll('[data-st]').forEach(function (b) { b.onclick = function () { S.salTab = b.dataset.st; draw(r); }; });
   };
   try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
   call('sellerStats', S.token, mois).then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
