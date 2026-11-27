@@ -440,6 +440,11 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .sln span{flex:1;min-width:0}.sln b{white-space:nowrap}.sln.l-prod i{background:var(--warn)}.sln.l-prod b{color:var(--warn)}.sln.l-ads i{background:#3B2F5C}.sln.l-ads b{color:#3B2F5C}
 .sfid{background:var(--good-soft);border-color:#BFE3CE!important}.sfh b{color:var(--good)!important}.sfbar{background:rgba(30,127,78,.15)!important}.sfbar i{background:var(--good)!important}
 .stot b.neg{color:var(--bad)}.stot b.net{color:var(--good)}.stot b{font-size:13px}
+.sper{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.sseg{display:flex;padding:3px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.sseg button{border:0;background:transparent;padding:7px 14px;border-radius:9px;font:inherit;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}.sseg button.on{background:var(--brand);color:#fff}
+.sday{display:flex;align-items:center;gap:6px;flex:1 1 100%;min-width:0}.sday button{width:34px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:18px;font-weight:700;color:var(--ink);cursor:pointer}.sday button:disabled{opacity:.35}
+.sday input{flex:1;min-width:0;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13.5px;padding:0 8px}.sday .sdt{width:auto;padding:0 10px;font-size:12.5px;color:var(--brand)}
+.smon{flex:1;min-width:0;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;padding:0 10px}
 </style>
 </head>
 <body>
@@ -2189,13 +2194,37 @@ function vDash() {
   });
 }
 // V67: Situation des conseillères (admin): commandes, CA, coûts, commission, net, ROI, fidèles.
-function salCard(mois) { return '<div class="panel salc"><div class="salh"><h2>' + ic('users') + ' Situation des conseillères</h2><span>' + esc(moisLabel(mois)) + '</span></div><div id="d-sal">' + loading() + '</div></div>'; }
+function salCard(mois) { return '<div class="panel salc"><div class="salh"><h2>' + ic('users') + ' Situation des conseillères</h2><span id="d-salw">' + esc(moisLabel(mois)) + '</span></div><div id="d-salp"></div><div id="d-sal">' + loading() + '</div></div>'; }
+function salAdd(d, n) { var x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); }
 function salLoad(mois) {
-  var k = 'sst_' + mois;
+  if (S.salBase !== mois) { S.salBase = mois; S.salMois = mois; }
+  if (!S.salMode) S.salMode = 'mois';
+  if (!S.salDay) S.salDay = todayISO();
+  var jour = S.salMode === 'jour', today = todayISO();
+  var k = 'sst_' + (jour ? 'd' + S.salDay : S.salMois);
+  var pe = $('d-salp');
+  if (pe) {
+    var opts = [], y = +today.slice(0, 4), mm = +today.slice(5, 7);
+    for (var i = 0; i < 12; i++) { var M = y + '-' + ('0' + mm).slice(-2); opts.push('<option value="' + M + '"' + (M === S.salMois ? ' selected' : '') + '>' + esc(moisLabel(M)) + '</option>'); if (--mm < 1) { mm = 12; y--; } }
+    if (opts.join('').indexOf('"' + S.salMois + '"') < 0) opts.push('<option value="' + S.salMois + '" selected>' + esc(moisLabel(S.salMois)) + '</option>');
+    pe.innerHTML = '<div class="sper"><div class="sseg"><button type="button" data-sm="jour" class="' + (jour ? 'on' : '') + '">Jour</button><button type="button" data-sm="mois" class="' + (jour ? '' : 'on') + '">Mois</button></div>' +
+      (jour ? '<div class="sday"><button type="button" id="sd-p" aria-label="Jour précédent">‹</button><input type="date" id="sd-d" value="' + S.salDay + '" max="' + today + '"><button type="button" id="sd-n" aria-label="Jour suivant"' + (S.salDay >= today ? ' disabled' : '') + '>›</button>' + (S.salDay !== today ? '<button type="button" id="sd-t" class="sdt">Aujourd\'hui</button>' : '') + '</div>'
+        : '<select id="sm-m" class="smon">' + opts.join('') + '</select>') + '</div>';
+    pe.querySelectorAll('[data-sm]').forEach(function (b) { b.onclick = function () { S.salMode = b.dataset.sm; salLoad(mois); }; });
+    var go2 = function (d) { if (d > today) d = today; S.salDay = d; salLoad(mois); };
+    if ($('sd-p')) $('sd-p').onclick = function () { go2(salAdd(S.salDay, -1)); };
+    if ($('sd-n')) $('sd-n').onclick = function () { go2(salAdd(S.salDay, 1)); };
+    if ($('sd-t')) $('sd-t').onclick = function () { go2(today); };
+    if ($('sd-d')) $('sd-d').onchange = function () { if (this.value) go2(this.value); };
+    if ($('sm-m')) $('sm-m').onchange = function () { S.salMois = this.value; salLoad(mois); };
+  }
+  var w = $('d-salw'); if (w) w.textContent = jour ? (S.salDay === today ? 'Aujourd\'hui' : fd(S.salDay)) : moisLabel(S.salMois);
+  var e0 = $('d-sal'); if (e0) e0.innerHTML = loading();
   var draw = function (r) {
     var e = $('d-sal'); if (!e) return;
+    if ((S.salMode === 'jour' ? 'sst_d' + S.salDay : 'sst_' + S.salMois) !== k) return;
     var L = (r && r.salers) || [];
-    if (!L.length) { e.innerHTML = '<p class="muted">Aucune commande ce mois-ci.</p>'; return; }
+    if (!L.length) { e.innerHTML = '<p class="muted">' + (jour ? 'Aucune commande ce jour-là.' : 'Aucune commande ce mois-ci.') + '</p>'; return; }
     var T = { cmd: 0, ca: 0, net: 0, com: 0 };
     L.forEach(function (s) { T.cmd += s.cmd; T.ca += s.ca; T.net += s.net; T.com += s.com; });
     if (!L.some(function (s) { return s.n === S.salTab; })) S.salTab = L[0].n;
@@ -2206,17 +2235,18 @@ function salLoad(mois) {
     var line = function (lab, val, sub, cls) { return '<div class="sln ' + (cls || '') + '"><span><i></i>' + lab + (sub ? '<small>' + sub + '</small>' : '') + '</span><b>' + val + '</b></div>'; };
     e.innerHTML = '<div class="stabs">' + L.map(function (x) { return '<button type="button" class="stab' + (x.n === S.salTab ? ' on' : '') + '" data-st="' + esc(x.n) + '" style="--t1:' + sc(x.n)[0] + ';--t2:' + sc(x.n)[1] + '"><i></i>' + esc(x.n) + '</button>'; }).join('') + '</div>' +
       '<div class="shero"><span class="shl">Bénéfice net · ' + esc(s.n) + '</span><b class="shv">' + dh(s.net) + '</b>' +
-        '<div class="shm"><em class="' + (s.roi >= 1 ? 'up' : '') + '">ROI ' + Math.round(s.roi * 100) + ' %</em><span>' + n0(s.cmd) + ' commandes · ' + part + ' % du bénéfice total</span></div></div>' +
+        '<div class="shm"><em class="' + (s.roi >= 1 ? 'up' : '') + '">ROI ' + Math.round(s.roi * 100) + ' %</em><span>' + n0(s.cmd) + ' commandes' + (part > 0 && part <= 100 ? ' · ' + part + ' % du bénéfice total' : '') + '</span></div></div>' +
       '<div class="skpi"><div class="k-ca"><span>Chiffre d\'affaires</span><b>' + dh(s.ca) + '</b></div><div class="k-com"><span>Commission</span><b class="com">' + dh(s.com) + '</b><small>' + (s.ca ? Math.round(s.com / s.ca * 100) : 0) + ' % du CA</small></div></div>' +
       '<div class="scost">' + line('Coût production', dh(s.prod), 'ads clients + vidéo + media buyer', 'l-prod') + line('Ads acquisition', dh(s.ads), 'pub TIMEDIA', 'l-ads') + '</div>' +
       '<div class="sfid"><div class="sfh"><span>Clients fidèles</span><b>' + n0(s.fid) + ' / ' + n0(s.cmd) + ' · ' + fp + ' %</b></div><div class="sfbar"><i style="width:' + fp + '%"></i></div></div>' +
-      (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) du début du mois : coût réparti depuis le Global dashboard</p>' : '') +
-      '<div class="stot"><div><span>Commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Charges générales</span><b class="neg">− ' + dh(r.business || 0) + '</b></div><div><span>NET total</span><b class="net">' + dh(T.net - (r.business || 0)) + '</b></div></div>' +
-      '<p class="sest">NET conseillères ' + dh(T.net) + ' − charges générales (Business TIMEDIA) = NET du mois</p>';
+      (s.attente ? '<p class="sest">' + s.attente + ' commande(s) encore à vérifier, comptée(s) dans ce jour</p>' : '') +
+      (s.estime ? '<p class="sest">≈ ' + s.estime + (jour ? ' commande(s) de l\'ancien sheet au coût estimé' : ' commande(s) du début du mois : coût réparti depuis le Global dashboard') + '</p>' : '') +
+      '<div class="stot"><div><span>Commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Charges générales' + (jour ? ' (jour)' : '') + '</span><b class="neg">− ' + dh(r.business || 0) + '</b></div><div><span>NET total</span><b class="net">' + dh(T.net - (r.business || 0)) + '</b></div></div>' +
+      '<p class="sest">NET conseillères ' + dh(T.net) + ' − charges générales (Business TIMEDIA) = NET ' + (jour ? 'du jour' : 'du mois') + '</p>';
     e.querySelectorAll('[data-st]').forEach(function (b) { b.onclick = function () { S.salTab = b.dataset.st; draw(r); }; });
   };
   try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
-  call('sellerStats', S.token, mois).then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
+  call('sellerStats', S.token, S.salMois, jour ? S.salDay : '').then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
     .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('.stabs')) e.innerHTML = errBox(er); });
 }
 var TILE_C = { adsday: 'c-blue', perso: 'c-purple', mzkia: 'c-green', fam9: 'c-pink', teamch: 'c-teal', detail: 'c-red', relances: 'c-amber', rapport: 'c-slate' };
