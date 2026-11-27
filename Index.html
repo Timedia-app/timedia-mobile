@@ -419,24 +419,26 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .rstl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:start;border:1px solid #F3D3D7;background:#FFF5F6;border-radius:12px;padding:10px 12px;margin-top:6px;font:inherit;color:inherit;cursor:pointer}
 .rstl span{font-size:13.5px}.rstl b{white-space:nowrap}.rstl em{grid-column:1/-1;font-style:normal;color:#D7263D;font-weight:700;font-size:12.5px}
 .salc .salh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.salc .salh h2{margin:0;display:flex;align-items:center;gap:8px;font-size:16px}.salc .salh span{font-size:12.5px;color:var(--muted,#6B7280)}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-.scard{border-radius:20px;overflow:hidden;background:var(--bg);border:1px solid color-mix(in srgb,var(--c1) 22%,transparent)}
-.shd{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff}
-.sav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
-.snm b{display:block;font-size:18px}.snm small{opacity:.92;font-size:12.5px}
-.snet{margin:12px 12px 0;background:#fff;border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;align-items:center;box-shadow:0 6px 16px -12px var(--c1)}
-.snet span{grid-column:1/-1;font-size:12px;font-weight:700;color:#4B5563;text-transform:uppercase;letter-spacing:.3px}.snet b{font-size:28px;font-weight:800;color:#15803D;line-height:1.2}
-.snet em{font-style:normal;font-weight:800;font-size:13px;color:var(--c1);background:var(--bg);padding:5px 10px;border-radius:999px}
-.stls{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 0}
-.stl{background:#fff;border-radius:14px;padding:10px 12px;border-top:3px solid var(--c2)}.stl span{display:block;font-size:11.5px;font-weight:700;color:#6B7280}
-.stl b{display:block;font-size:16px;font-weight:800;color:#111827;margin-top:2px}.stl small{display:block;font-size:11px;color:#6B7280}.stl.com b{color:#B45309}
-.sfid{margin:10px 12px 12px;background:#fff;border-radius:14px;padding:10px 12px}.sfh{display:flex;justify-content:space-between;font-size:12.5px}.sfh span{font-weight:700;color:#6B7280}.sfh b{color:var(--c1)}
-.sbar{height:8px;border-radius:99px;background:var(--bg);margin-top:7px;overflow:hidden}.sbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2))}
-.sest{margin:-4px 14px 12px;font-size:11px;color:#6B7280}
-.stot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;border-radius:16px;background:#111827;color:#fff;text-align:center}.stot span{display:block;font-size:11px;opacity:.75}.stot b{font-size:14.5px}
-.stabs{display:flex;gap:8px;margin-bottom:12px}.stab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:14px;border:2px solid var(--line,#E5E7EB);background:var(--card,#fff);color:var(--ink,#111827);font:inherit;font-weight:800;font-size:15px;cursor:pointer}
-.stab i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--c1);color:#fff;font-size:13px}.stab.on{background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;border-color:transparent;box-shadow:0 8px 18px -12px var(--c1)}.stab.on i{background:rgba(255,255,255,.25)}
-.scard.hid{display:none}.sgrid{grid-template-columns:1fr!important}
+.stabs{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;margin-bottom:12px}
+.stab{flex:1;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:14.5px;cursor:pointer}.stab.on{background:var(--ink);color:var(--panel);box-shadow:var(--sh)}
+.shero{border-radius:18px;padding:16px;color:#fff;background:radial-gradient(120% 90% at 100% 0,#3B2F5C 0,transparent 60%),linear-gradient(150deg,#1E1B2E,#14121D);box-shadow:0 12px 28px rgba(20,18,29,.3)}
+.shl{display:block;font-size:12.5px;font-weight:600;opacity:.75}.shv{display:block;font:800 34px var(--head);letter-spacing:-.02em;line-height:1.15;margin:4px 0 10px;font-variant-numeric:tabular-nums}
+.shm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px}.shm span{opacity:.75}.shm em{font-style:normal;font-weight:800;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.12)}.shm em.up{background:#34D39933;color:#6EE7B7}
+.skpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.skpi div{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+.skpi span{display:block;font-size:12px;font-weight:600;color:var(--muted)}.skpi b{display:block;font:800 19px var(--head);color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums}.skpi b.com{color:var(--warn)}.skpi small{font-size:11.5px;color:var(--muted)}
+.scost{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:2px 12px}.sln{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0}.sln+.sln{border-top:1px solid var(--line)}
+.sln span{font-size:13px;font-weight:600;color:var(--ink)}.sln small{display:block;font-weight:400;font-size:11px;color:var(--muted)}.sln b{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sfid{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.sfh{display:flex;justify-content:space-between;font-size:13px}.sfh span{font-weight:600}.sfh b{color:var(--good)}
+.sfbar{height:7px;border-radius:99px;background:var(--good-soft);margin-top:8px;overflow:hidden}.sfbar i{display:block;height:100%;border-radius:99px;background:var(--good)}
+.sest{margin:8px 2px 0;font-size:11px;color:var(--muted)}
+.stot{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);text-align:center}.stot span{display:block;font-size:11px;color:var(--muted)}.stot b{font-size:14px;color:var(--ink)}
+.shero{background:radial-gradient(110% 80% at 100% 0,rgba(255,255,255,.18) 0,transparent 60%),linear-gradient(140deg,var(--s1,#D7263D),var(--s2,#9E1026))!important;box-shadow:0 12px 30px -8px var(--s2,#9E1026)!important}.shm em.up{background:rgba(255,255,255,.22)!important;color:#fff!important}
+.stab{display:flex;align-items:center;justify-content:center;gap:8px}.stab i{width:10px;height:10px;border-radius:50%;background:var(--t1)}.stab.on{background:linear-gradient(140deg,var(--t1),var(--t2))!important;color:#fff!important}.stab.on i{background:#fff}
+.skpi .k-ca{background:#EFEDF6;border-color:#DCD8EA;border-inline-start:4px solid #3B2F5C}.skpi .k-ca b{color:#2A2342}.skpi .k-ca span{color:#4B4366}
+.skpi .k-com{background:var(--brand-soft);border-color:#F6C9D0;border-inline-start:4px solid var(--brand)}.skpi .k-com b{color:var(--brand)}.skpi .k-com span{color:var(--brand2)}
+.sln span{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px}.sln span small{flex-basis:100%;padding-inline-start:16px}.sln i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sln span{flex:1;min-width:0}.sln b{white-space:nowrap}.sln.l-prod i{background:var(--warn)}.sln.l-prod b{color:var(--warn)}.sln.l-ads i{background:#3B2F5C}.sln.l-ads b{color:#3B2F5C}
+.sfid{background:var(--good-soft);border-color:#BFE3CE!important}.sfh b{color:var(--good)!important}.sfbar{background:rgba(30,127,78,.15)!important}.sfbar i{background:var(--good)!important}
 </style>
 </head>
 <body>
@@ -2189,40 +2191,31 @@ function vDash() {
 function salCard(mois) { return '<div class="panel salc"><div class="salh"><h2>' + ic('users') + ' Situation des conseillères</h2><span>' + esc(moisLabel(mois)) + '</span></div><div id="d-sal">' + loading() + '</div></div>'; }
 function salLoad(mois) {
   var k = 'sst_' + mois;
-  var PAL = [['#7C3AED', '#A855F7', '#F5F3FF'], ['#0F766E', '#14B8A6', '#F0FDFA'], ['#C2410C', '#F97316', '#FFF7ED'], ['#1D4ED8', '#3B82F6', '#EFF6FF']];
-  var COL = { salwa: 0, ilham: 1 };
   var draw = function (r) {
     var e = $('d-sal'); if (!e) return;
     var L = (r && r.salers) || [];
     if (!L.length) { e.innerHTML = '<p class="muted">Aucune commande ce mois-ci.</p>'; return; }
     var T = { cmd: 0, ca: 0, net: 0, com: 0 };
     L.forEach(function (s) { T.cmd += s.cmd; T.ca += s.ca; T.net += s.net; T.com += s.com; });
-    var used = {};
     if (!L.some(function (s) { return s.n === S.salTab; })) S.salTab = L[0].n;
-    var tabs = '<div class="stabs">' + L.map(function (s) { var ci = COL[String(s.n).toLowerCase()]; var P = PAL[(ci === undefined ? 2 : ci) % PAL.length]; return '<button type="button" class="stab' + (s.n === S.salTab ? ' on' : '') + '" data-st="' + esc(s.n) + '" style="--c1:' + P[0] + ';--c2:' + P[1] + '"><i>' + esc(String(s.n).charAt(0)) + '</i>' + esc(s.n) + '</button>'; }).join('') + '</div>';
-    e.innerHTML = tabs + '<div class="sgrid">' + L.map(function (s, i) {
-      var ci = COL[String(s.n).toLowerCase()]; if (ci === undefined || used[ci]) { ci = 2; while (used[ci]) ci++; } used[ci] = 1;
-      var P = PAL[ci % PAL.length], fp = s.cmd ? Math.round(s.fid / s.cmd * 100) : 0, part = T.net ? Math.round(s.net / T.net * 100) : 0;
-      var tile = function (lab, val, sub, cls) { return '<div class="stl' + (cls ? ' ' + cls : '') + '"><span>' + lab + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
-      return '<div class="scard' + (s.n === S.salTab ? '' : ' hid') + '" style="--c1:' + P[0] + ';--c2:' + P[1] + ';--bg:' + P[2] + '">' +
-        '<div class="shd"><div class="sav">' + esc(String(s.n).charAt(0)) + '</div><div class="snm"><b>' + esc(s.n) + '</b><small>' + n0(s.cmd) + ' commandes · ' + part + ' % du bénéfice</small></div></div>' +
-        '<div class="snet"><span>Bénéfice net</span><b>' + dh(s.net) + '</b><em>ROI ' + Math.round(s.roi * 100) + ' %</em></div>' +
-        '<div class="stls">' +
-          tile('Chiffre d\'affaires', dh(s.ca), '') +
-          tile('Commission', dh(s.com), s.ca ? Math.round(s.com / s.ca * 100) + ' % du CA' : '', 'com') +
-          tile('Coût production', dh(s.prod), 'ads clients + vidéo + MB') +
-          tile('Ads acquisition', dh(s.ads), 'pub TIMEDIA') +
-        '</div>' +
-        '<div class="sfid"><div class="sfh"><span>Clients fidèles</span><b>' + n0(s.fid) + ' / ' + n0(s.cmd) + ' · ' + fp + ' %</b></div><div class="sbar"><i style="width:' + fp + '%"></i></div></div>' +
-        (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) ancienne(s) au coût estimé</p>' : '') +
-      '</div>';
-    }).join('') + '</div>' +
-    (L.length > 1 ? '<div class="stot"><div><span>Total commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Net total</span><b>' + dh(T.net) + '</b></div></div>' : '');
+    var s = L.filter(function (x) { return x.n === S.salTab; })[0];
+    var SC = { salwa: ['#C9774B', '#7A3E12'], ilham: ['#F6A21E', '#C25E00'] }, sc = function (n) { return SC[String(n).toLowerCase().split(' ')[0]] || ['#D7263D', '#9E1026']; };
+    e.style.setProperty('--s1', sc(s.n)[0]); e.style.setProperty('--s2', sc(s.n)[1]);
+    var fp = s.cmd ? Math.round(s.fid / s.cmd * 100) : 0, part = T.net ? Math.round(s.net / T.net * 100) : 0;
+    var line = function (lab, val, sub, cls) { return '<div class="sln ' + (cls || '') + '"><span><i></i>' + lab + (sub ? '<small>' + sub + '</small>' : '') + '</span><b>' + val + '</b></div>'; };
+    e.innerHTML = '<div class="stabs">' + L.map(function (x) { return '<button type="button" class="stab' + (x.n === S.salTab ? ' on' : '') + '" data-st="' + esc(x.n) + '" style="--t1:' + sc(x.n)[0] + ';--t2:' + sc(x.n)[1] + '"><i></i>' + esc(x.n) + '</button>'; }).join('') + '</div>' +
+      '<div class="shero"><span class="shl">Bénéfice net · ' + esc(s.n) + '</span><b class="shv">' + dh(s.net) + '</b>' +
+        '<div class="shm"><em class="' + (s.roi >= 1 ? 'up' : '') + '">ROI ' + Math.round(s.roi * 100) + ' %</em><span>' + n0(s.cmd) + ' commandes · ' + part + ' % du bénéfice total</span></div></div>' +
+      '<div class="skpi"><div class="k-ca"><span>Chiffre d\'affaires</span><b>' + dh(s.ca) + '</b></div><div class="k-com"><span>Commission</span><b class="com">' + dh(s.com) + '</b><small>' + (s.ca ? Math.round(s.com / s.ca * 100) : 0) + ' % du CA</small></div></div>' +
+      '<div class="scost">' + line('Coût production', dh(s.prod), 'ads clients + vidéo + media buyer', 'l-prod') + line('Ads acquisition', dh(s.ads), 'pub TIMEDIA', 'l-ads') + '</div>' +
+      '<div class="sfid"><div class="sfh"><span>Clients fidèles</span><b>' + n0(s.fid) + ' / ' + n0(s.cmd) + ' · ' + fp + ' %</b></div><div class="sfbar"><i style="width:' + fp + '%"></i></div></div>' +
+      (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) ancienne(s) au coût estimé</p>' : '') +
+      (L.length > 1 ? '<div class="stot"><div><span>Total commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Net total</span><b>' + dh(T.net) + '</b></div></div>' : '');
     e.querySelectorAll('[data-st]').forEach(function (b) { b.onclick = function () { S.salTab = b.dataset.st; draw(r); }; });
   };
   try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
   call('sellerStats', S.token, mois).then(function (r) { try { sessionStorage.setItem(k, JSON.stringify(r)); } catch (e) {} draw(r); })
-    .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('.sgrid')) e.innerHTML = errBox(er); });
+    .catch(function (er) { var e = $('d-sal'); if (e && !e.querySelector('.stabs')) e.innerHTML = errBox(er); });
 }
 var TILE_C = { adsday: 'c-blue', perso: 'c-purple', mzkia: 'c-green', fam9: 'c-pink', teamch: 'c-teal', detail: 'c-red', relances: 'c-amber', rapport: 'c-slate' };
 /* ---- Rythme dyal chhar: CA/jour, bénéfice/jour, virements/jour, ROAS, ROI, vs chhar li fat ---- */
