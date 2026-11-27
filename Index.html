@@ -431,7 +431,7 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .sfid{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.sfh{display:flex;justify-content:space-between;font-size:13px}.sfh span{font-weight:600}.sfh b{color:var(--good)}
 .sfbar{height:7px;border-radius:99px;background:var(--good-soft);margin-top:8px;overflow:hidden}.sfbar i{display:block;height:100%;border-radius:99px;background:var(--good)}
 .sest{margin:8px 2px 0;font-size:11px;color:var(--muted)}
-.stot{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);text-align:center}.stot span{display:block;font-size:11px;color:var(--muted)}.stot b{font-size:14px;color:var(--ink)}
+.stot{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);text-align:center}.stot span{display:block;font-size:11px;color:var(--muted)}.stot b{font-size:14px;color:var(--ink)}
 .shero{background:radial-gradient(110% 80% at 100% 0,rgba(255,255,255,.18) 0,transparent 60%),linear-gradient(140deg,var(--s1,#D7263D),var(--s2,#9E1026))!important;box-shadow:0 12px 30px -8px var(--s2,#9E1026)!important}.shm em.up{background:rgba(255,255,255,.22)!important;color:#fff!important}
 .stab{display:flex;align-items:center;justify-content:center;gap:8px}.stab i{width:10px;height:10px;border-radius:50%;background:var(--t1)}.stab.on{background:linear-gradient(140deg,var(--t1),var(--t2))!important;color:#fff!important}.stab.on i{background:#fff}
 .skpi .k-ca{background:#EFEDF6;border-color:#DCD8EA;border-inline-start:4px solid #3B2F5C}.skpi .k-ca b{color:#2A2342}.skpi .k-ca span{color:#4B4366}
@@ -439,6 +439,7 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .sln span{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px}.sln span small{flex-basis:100%;padding-inline-start:16px}.sln i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .sln span{flex:1;min-width:0}.sln b{white-space:nowrap}.sln.l-prod i{background:var(--warn)}.sln.l-prod b{color:var(--warn)}.sln.l-ads i{background:#3B2F5C}.sln.l-ads b{color:#3B2F5C}
 .sfid{background:var(--good-soft);border-color:#BFE3CE!important}.sfh b{color:var(--good)!important}.sfbar{background:rgba(30,127,78,.15)!important}.sfbar i{background:var(--good)!important}
+.stot b.neg{color:var(--bad)}.stot b.net{color:var(--good)}.stot b{font-size:13px}
 </style>
 </head>
 <body>
@@ -2209,8 +2210,9 @@ function salLoad(mois) {
       '<div class="skpi"><div class="k-ca"><span>Chiffre d\'affaires</span><b>' + dh(s.ca) + '</b></div><div class="k-com"><span>Commission</span><b class="com">' + dh(s.com) + '</b><small>' + (s.ca ? Math.round(s.com / s.ca * 100) : 0) + ' % du CA</small></div></div>' +
       '<div class="scost">' + line('Coût production', dh(s.prod), 'ads clients + vidéo + media buyer', 'l-prod') + line('Ads acquisition', dh(s.ads), 'pub TIMEDIA', 'l-ads') + '</div>' +
       '<div class="sfid"><div class="sfh"><span>Clients fidèles</span><b>' + n0(s.fid) + ' / ' + n0(s.cmd) + ' · ' + fp + ' %</b></div><div class="sfbar"><i style="width:' + fp + '%"></i></div></div>' +
-      (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) ancienne(s) au coût estimé</p>' : '') +
-      (L.length > 1 ? '<div class="stot"><div><span>Total commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Net total</span><b>' + dh(T.net) + '</b></div></div>' : '');
+      (s.estime ? '<p class="sest">≈ ' + s.estime + ' commande(s) du début du mois : coût réparti depuis le Global dashboard</p>' : '') +
+      '<div class="stot"><div><span>Commandes</span><b>' + n0(T.cmd) + '</b></div><div><span>CA total</span><b>' + dh(T.ca) + '</b></div><div><span>Charges générales</span><b class="neg">− ' + dh(r.business || 0) + '</b></div><div><span>NET total</span><b class="net">' + dh(T.net - (r.business || 0)) + '</b></div></div>' +
+      '<p class="sest">NET conseillères ' + dh(T.net) + ' − charges générales (Business TIMEDIA) = NET du mois</p>';
     e.querySelectorAll('[data-st]').forEach(function (b) { b.onclick = function () { S.salTab = b.dataset.st; draw(r); }; });
   };
   try { var c = JSON.parse(sessionStorage.getItem(k) || 'null'); if (c) draw(c); } catch (e) {}
