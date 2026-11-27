@@ -139,9 +139,9 @@ public class MainActivity extends Activity {
         NotifWorker.schedule(this);
     }
 
-    // L'interface katji mn GitHub (release « app.html »): ay tabdil kayban bla ma n3awdo l'installation.
+    // V73: l'interface katji mn Apps Script (?ui=app), machi mn GitHub: ay tabdil kayban bla ma n3awdo l'installation.
     static final String BASE = "https://app.timedia.local/";
-    static final String UI_URL = "https://github.com/Timedia-app/timedia-mobile/releases/latest/download/app.html";
+    static final String UI_URL = "https://script.google.com/macros/s/AKfycbyA1MX1tBYkeR_MLt_jPVBFHYS5J-79QQBObwZXI6JVXhw10wCHP27jd3tHbDChkwgVfw/exec?ui=app";
 
     private static String readAll(java.io.InputStream in) throws java.io.IOException {
         java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
