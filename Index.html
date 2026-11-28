@@ -36,7 +36,7 @@ header .hav{padding:0;border:2px solid rgba(255,255,255,.5);border-radius:999px;
 .tabbar button.fab .ic{width:28px;height:28px}
 .tabbar .tb{position:absolute;top:2px;inset-inline-end:calc(50% - 20px);background:var(--brand);color:#fff;border-radius:999px;font-size:10px;min-width:16px;height:16px;line-height:16px;padding:0 4px}
 /* ---------- contenu ---------- */
-main{max-width:760px;margin:0 auto;padding:16px;display:grid;gap:16px}
+main{max-width:760px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}main>*{min-width:0}
 body.admin main{max-width:1100px}
 h1,h2,h3{font-family:var(--head);margin:0;letter-spacing:-.01em} h1{font-size:22px} h2{font-size:17px} h3{font-size:15px}
 .pt{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -329,6 +329,7 @@ html,body{overflow-x:hidden;max-width:100%}#app{min-width:0;max-width:100%;overf
 .gh{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}.gh>b{display:flex;align-items:center;gap:6px;font:700 16px var(--head)}.gh>b svg{width:18px;height:18px}
 .gh>span{font-size:12px;color:var(--muted)}.gh .chips{margin:0}
 .gcard .chips{margin:4px 0}
+.gcard{grid-template-columns:minmax(0,1fr)}.gcard>*,.gh>*{min-width:0}.gh .chips{max-width:100%}#gchart svg{max-width:100%}
 .gsvg{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
 .gsvg .ggrid{stroke:var(--line);stroke-width:1}.gsvg .gx{font-size:10px;fill:var(--muted);text-anchor:middle}
 .gsvg .gb{transition:opacity .15s}.gsvg .gb.hl{stroke:var(--ink);stroke-width:1.5}.gsvg .gb.sel{stroke:var(--ink);stroke-width:2;opacity:1}
